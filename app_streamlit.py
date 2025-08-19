@@ -355,7 +355,7 @@ avatars_loaded = 'avatars_loaded' in st.session_state and st.session_state.avata
 
 if not voices_loaded or not avatars_loaded:
     # Center the button when not loaded
-    col_left, col_center, col_right = st.columns([0.4, 0.2, 0.4])
+    col_left, col_center, col_right = st.columns([0.42, 0.2, 0.38])
     with col_center:
         if st.button("Load Avatars and Voices", key="load_all"):
             if heygen_api_key and elevenlab_api_key:
