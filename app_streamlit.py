@@ -428,6 +428,144 @@ else:
                 if selected_voice:
                     st.session_state.selected_voice_id = selected_voice[1]
 
+# Preview Section: Avatar and Voice Previews (appears after loading)
+if voices_loaded and avatars_loaded:
+    st.markdown('<div style="margin-top: 50px;"></div>', unsafe_allow_html=True)  # Spacing from first line
+    
+    # Futuristic styling for preview section
+    st.markdown("""
+    <style>
+    .preview-container {
+        background: linear-gradient(135deg, rgba(0,255,255,0.05) 0%, rgba(128,0,255,0.05) 100%);
+        border: 1px solid rgba(0,255,255,0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+    }
+    .preview-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 15px;
+        text-align: center;
+    }
+    .preview-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    .avatar-image {
+        border-radius: 10px;
+        border: 2px solid rgba(0,255,255,0.3);
+        max-width: 120px;
+        max-height: 120px;
+    }
+    .voice-sample-btn {
+        background: linear-gradient(135deg, rgba(0,255,255,0.15) 0%, rgba(128,0,255,0.15) 100%);
+        border: 1px solid rgba(0,255,255,0.4);
+        color: #ffffff;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    .voice-sample-btn:hover {
+        background: linear-gradient(135deg, rgba(0,255,255,0.25) 0%, rgba(128,0,255,0.25) 100%);
+        border: 1px solid rgba(0,255,255,0.6);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col_left_preview, col_center_preview, col_right_preview = st.columns([0.15, 0.7, 0.15])
+    
+    with col_center_preview:
+        avatar_preview_col, voice_preview_col = st.columns(2)
+        
+        # Avatar Preview
+        with avatar_preview_col:
+            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
+            st.markdown('<h3 class="preview-title">🎭 Avatar Preview</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.get('selected_avatar_id'):
+                # Find selected avatar details
+                selected_avatar_details = None
+                for avatar in st.session_state.get('available_avatars', []):
+                    if avatar['avatar_id'] == st.session_state.selected_avatar_id:
+                        selected_avatar_details = avatar
+                        break
+                
+                if selected_avatar_details:
+                    col_img, col_info = st.columns([1, 1])
+                    with col_img:
+                        if 'preview_image_url' in selected_avatar_details:
+                            st.image(selected_avatar_details['preview_image_url'], 
+                                   caption=selected_avatar_details['avatar_name'],
+                                   use_column_width=True)
+                        else:
+                            st.markdown('<div style="text-align: center; padding: 30px;">📸<br>No Preview</div>', 
+                                      unsafe_allow_html=True)
+                    
+                    with col_info:
+                        st.markdown(f"**Name:** {selected_avatar_details['avatar_name']}")
+                        if 'gender' in selected_avatar_details:
+                            st.markdown(f"**Gender:** {selected_avatar_details['gender']}")
+                        if 'age' in selected_avatar_details:
+                            st.markdown(f"**Age:** {selected_avatar_details['age']}")
+                else:
+                    st.markdown('<div style="text-align: center; padding: 20px;">Select an avatar to preview</div>', 
+                              unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="text-align: center; padding: 20px;">Select an avatar to preview</div>', 
+                          unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Voice Preview
+        with voice_preview_col:
+            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
+            st.markdown('<h3 class="preview-title">🎤 Voice Preview</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.get('selected_voice_id'):
+                # Find selected voice details
+                selected_voice_details = None
+                for voice in st.session_state.get('available_voices', []):
+                    if voice['voice_id'] == st.session_state.selected_voice_id:
+                        selected_voice_details = voice
+                        break
+                
+                if selected_voice_details:
+                    st.markdown(f"**Name:** {selected_voice_details['name']}")
+                    if 'category' in selected_voice_details:
+                        st.markdown(f"**Category:** {selected_voice_details['category']}")
+                    
+                    # Voice sample button
+                    if st.button("🔊 Play Voice Sample", key="voice_sample", 
+                               help="Generate a sample to hear this voice"):
+                        with st.spinner("Generating voice sample..."):
+                            sample_text = "Hello! This is a sample of my voice. How do I sound?"
+                            sample_audio = generate_voice_elevenlabs(
+                                sample_text, 
+                                elevenlab_api_key, 
+                                st.session_state.selected_voice_id
+                            )
+                            
+                            if sample_audio:
+                                st.audio(sample_audio, format="audio/mp3")
+                            else:
+                                st.error("Failed to generate voice sample")
+                else:
+                    st.markdown('<div style="text-align: center; padding: 20px;">Select a voice to preview</div>', 
+                              unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="text-align: center; padding: 20px;">Select a voice to preview</div>', 
+                          unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+
 # Second line: Topic input and testing buttons (conditional styling)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
 
