@@ -177,6 +177,9 @@ if not voices_loaded or not avatars_loaded:
                     if voices:
                         st.session_state.available_voices = voices
                         st.session_state.voices_loaded = True
+                    
+                    # Force refresh to show new layout immediately
+                    st.rerun()
 else:
     # Normal layout when loaded
     col_left, col_center, col_right = st.columns([0.25, 0.5, 0.25])
@@ -201,6 +204,9 @@ else:
                         if voices:
                             st.session_state.available_voices = voices
                             st.session_state.voices_loaded = True
+                        
+                        # Force refresh to update dropdowns immediately
+                        st.rerun()
         
         with avatar_col:
             # Avatar dropdown (shows only if loaded successfully)
