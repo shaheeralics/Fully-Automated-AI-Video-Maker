@@ -439,43 +439,50 @@ if voices_loaded and avatars_loaded:
         background: linear-gradient(135deg, rgba(0,255,255,0.05) 0%, rgba(128,0,255,0.05) 100%);
         border: 1px solid rgba(0,255,255,0.2);
         border-radius: 12px;
-        padding: 20px;
-        margin: 15px 0;
+        padding: 15px;
+        margin: 10px 0;
+        min-height: 250px;
+        max-height: 280px;
     }
     .preview-title {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
         font-weight: 600;
         background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         text-align: center;
     }
     .preview-content {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
     .avatar-image {
-        border-radius: 10px;
+        border-radius: 8px;
         border: 2px solid rgba(0,255,255,0.3);
-        max-width: 120px;
-        max-height: 120px;
+        max-width: 100px;
+        max-height: 100px;
     }
     .voice-sample-btn {
         background: linear-gradient(135deg, rgba(0,255,255,0.15) 0%, rgba(128,0,255,0.15) 100%);
         border: 1px solid rgba(0,255,255,0.4);
         color: #ffffff;
         font-weight: 500;
-        padding: 8px 16px;
+        padding: 6px 12px;
         border-radius: 6px;
         text-decoration: none;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
     .voice-sample-btn:hover {
         background: linear-gradient(135deg, rgba(0,255,255,0.25) 0%, rgba(128,0,255,0.25) 100%);
         border: 1px solid rgba(0,255,255,0.6);
+    }
+    .compact-info {
+        font-size: 0.85rem;
+        line-height: 1.3;
+        margin: 3px 0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -499,26 +506,27 @@ if voices_loaded and avatars_loaded:
                         break
                 
                 if selected_avatar_details:
-                    # Center the image
+                    # Compact image display
                     if 'preview_image_url' in selected_avatar_details:
-                        st.image(selected_avatar_details['preview_image_url'], 
-                               caption=selected_avatar_details['avatar_name'],
-                               use_container_width=True)
+                        col1, col2, col3 = st.columns([0.2, 0.6, 0.2])
+                        with col2:
+                            st.image(selected_avatar_details['preview_image_url'], 
+                                   use_container_width=True)
                     else:
-                        st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">📸<br>No Preview Available</div>', 
+                        st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem;">📸<br>No Preview</div>', 
                                   unsafe_allow_html=True)
                     
-                    # Avatar info below image
-                    st.markdown(f"**Name:** {selected_avatar_details['avatar_name']}")
+                    # Compact info
+                    st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_avatar_details["avatar_name"]}</div>', unsafe_allow_html=True)
                     if 'gender' in selected_avatar_details:
-                        st.markdown(f"**Gender:** {selected_avatar_details['gender']}")
+                        st.markdown(f'<div class="compact-info"><strong>Gender:</strong> {selected_avatar_details["gender"]}</div>', unsafe_allow_html=True)
                     if 'age' in selected_avatar_details:
-                        st.markdown(f"**Age:** {selected_avatar_details['age']}")
+                        st.markdown(f'<div class="compact-info"><strong>Age:</strong> {selected_avatar_details["age"]}</div>', unsafe_allow_html=True)
                 else:
-                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select an avatar to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
                               unsafe_allow_html=True)
             else:
-                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select an avatar to preview</div>', 
+                st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
                           unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
@@ -537,19 +545,20 @@ if voices_loaded and avatars_loaded:
                         break
                 
                 if selected_voice_details:
-                    st.markdown(f"**Name:** {selected_voice_details['name']}")
+                    # Compact voice info
+                    st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_voice_details["name"]}</div>', unsafe_allow_html=True)
                     if 'category' in selected_voice_details:
-                        st.markdown(f"**Category:** {selected_voice_details['category']}")
+                        st.markdown(f'<div class="compact-info"><strong>Category:</strong> {selected_voice_details["category"]}</div>', unsafe_allow_html=True)
                     
-                    # Add some spacing
-                    st.markdown('<div style="margin: 15px 0;"></div>', unsafe_allow_html=True)
+                    # Compact spacing
+                    st.markdown('<div style="margin: 10px 0;"></div>', unsafe_allow_html=True)
                     
-                    # Voice sample button - centered
-                    if st.button("🔊 Play Voice Sample", key="voice_sample", 
+                    # Compact voice sample button
+                    if st.button("🔊 Sample", key="voice_sample", 
                                help="Generate a sample to hear this voice",
                                use_container_width=True):
-                        with st.spinner("Generating voice sample..."):
-                            sample_text = "Hello! This is a sample of my voice. How do I sound?"
+                        with st.spinner("Generating..."):
+                            sample_text = "Hello! This is a sample of my voice."
                             sample_audio = generate_voice_elevenlabs(
                                 sample_text, 
                                 elevenlab_api_key, 
@@ -559,12 +568,12 @@ if voices_loaded and avatars_loaded:
                             if sample_audio:
                                 st.audio(sample_audio, format="audio/mp3")
                             else:
-                                st.error("Failed to generate voice sample")
+                                st.error("Failed to generate sample")
                 else:
-                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select a voice to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
                               unsafe_allow_html=True)
             else:
-                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select a voice to preview</div>', 
+                st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
                           unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
