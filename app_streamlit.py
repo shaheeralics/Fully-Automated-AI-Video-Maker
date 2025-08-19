@@ -121,11 +121,33 @@ def generate_script_gemini(topic, prompt, samples, api_key):
     # Updated Gemini API endpoint and model
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
+    
+    # Enhanced prompt to ensure Roman Urdu output
+    enhanced_prompt = f"""
+{prompt}
+
+IMPORTANT: You MUST write the entire script in ROMAN URDU only. Do not use English except for technical terms that don't have Roman Urdu equivalents.
+
+Examples of Roman Urdu style you should follow:
+- "Aaj main aap ko bataunga..."
+- "Yeh kya baat hai..."
+- "Dekho yaar..."
+- "Lagta hai..."
+- "Samajh gaye?"
+
+Sample Scripts for Reference:
+{samples}
+
+Video Topic: {topic}
+
+Remember: Write ONLY in Roman Urdu with the casual, witty tone as shown in the sample scripts.
+"""
+    
     data = {
         "contents": [
             {
                 "parts": [
-                    {"text": f"{prompt}\n\nSample Scripts:\n{samples}\n\nVideo Topic: {topic}"}
+                    {"text": enhanced_prompt}
                 ]
             }
         ],
