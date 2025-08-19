@@ -520,13 +520,15 @@ if voices_loaded and avatars_loaded:
                 <div style="
                     background: linear-gradient(135deg, rgba(0,255,255,0.08) 0%, rgba(128,0,255,0.08) 100%);
                     border-radius: 8px;
-                    padding: 10px;
+                    padding: 8px;
                     margin: -10px;
-                    min-height: 220px;
+                    height: 180px;
+                    display: flex;
+                    flex-direction: column;
                 ">
                 """, unsafe_allow_html=True)
                 
-                st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 10px 0; font-size: 0.9rem;">🎭 Avatar Preview</h4>', unsafe_allow_html=True)
+                st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎭 Avatar</h4>', unsafe_allow_html=True)
                 
                 if st.session_state.get('selected_avatar_id'):
                     # Find selected avatar details
@@ -539,25 +541,23 @@ if voices_loaded and avatars_loaded:
                     if selected_avatar_details:
                         # Compact image display
                         if 'preview_image_url' in selected_avatar_details:
-                            col1, col2, col3 = st.columns([0.1, 0.8, 0.1])
+                            col1, col2, col3 = st.columns([0.15, 0.7, 0.15])
                             with col2:
                                 st.image(selected_avatar_details['preview_image_url'], 
                                        use_container_width=True)
                         else:
-                            st.markdown('<div style="text-align: center; padding: 15px; color: rgba(255,255,255,0.7); font-size: 0.8rem;">📸<br>No Preview</div>', 
+                            st.markdown('<div style="text-align: center; padding: 10px; color: rgba(255,255,255,0.7); font-size: 0.7rem;">📸<br>No Preview</div>', 
                                       unsafe_allow_html=True)
                         
-                        # Compact info
-                        st.markdown(f'<div style="font-size: 0.8rem; margin: 5px 0; text-align: center;"><strong>Name:</strong> {selected_avatar_details["avatar_name"]}</div>', unsafe_allow_html=True)
+                        # Very compact info
+                        st.markdown(f'<div style="font-size: 0.7rem; margin: 2px 0; text-align: center;">{selected_avatar_details["avatar_name"]}</div>', unsafe_allow_html=True)
                         if 'gender' in selected_avatar_details:
-                            st.markdown(f'<div style="font-size: 0.8rem; margin: 3px 0; text-align: center;"><strong>Gender:</strong> {selected_avatar_details["gender"]}</div>', unsafe_allow_html=True)
-                        if 'age' in selected_avatar_details:
-                            st.markdown(f'<div style="font-size: 0.8rem; margin: 3px 0; text-align: center;"><strong>Age:</strong> {selected_avatar_details["age"]}</div>', unsafe_allow_html=True)
+                            st.markdown(f'<div style="font-size: 0.65rem; margin: 1px 0; text-align: center; opacity: 0.8;">{selected_avatar_details["gender"]}</div>', unsafe_allow_html=True)
                     else:
-                        st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
+                        st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select avatar</div>', 
                                   unsafe_allow_html=True)
                 else:
-                    st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select avatar</div>', 
                               unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
@@ -571,13 +571,15 @@ if voices_loaded and avatars_loaded:
                 <div style="
                     background: linear-gradient(135deg, rgba(0,255,255,0.08) 0%, rgba(128,0,255,0.08) 100%);
                     border-radius: 8px;
-                    padding: 10px;
+                    padding: 8px;
                     margin: -10px;
-                    min-height: 220px;
+                    height: 180px;
+                    display: flex;
+                    flex-direction: column;
                 ">
                 """, unsafe_allow_html=True)
                 
-                st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 10px 0; font-size: 0.9rem;">🎤 Voice Preview</h4>', unsafe_allow_html=True)
+                st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎤 Voice</h4>', unsafe_allow_html=True)
                 
                 if st.session_state.get('selected_voice_id'):
                     # Find selected voice details
@@ -588,20 +590,20 @@ if voices_loaded and avatars_loaded:
                             break
                     
                     if selected_voice_details:
-                        # Compact voice info
-                        st.markdown(f'<div style="font-size: 0.8rem; margin: 8px 0; text-align: center;"><strong>Name:</strong> {selected_voice_details["name"]}</div>', unsafe_allow_html=True)
+                        # Very compact voice info
+                        st.markdown(f'<div style="font-size: 0.7rem; margin: 5px 0; text-align: center;">{selected_voice_details["name"]}</div>', unsafe_allow_html=True)
                         if 'category' in selected_voice_details:
-                            st.markdown(f'<div style="font-size: 0.8rem; margin: 5px 0; text-align: center;"><strong>Category:</strong> {selected_voice_details["category"]}</div>', unsafe_allow_html=True)
+                            st.markdown(f'<div style="font-size: 0.65rem; margin: 3px 0; text-align: center; opacity: 0.8;">{selected_voice_details["category"]}</div>', unsafe_allow_html=True)
                         
                         # Compact spacing
-                        st.markdown('<div style="margin: 15px 0;"></div>', unsafe_allow_html=True)
+                        st.markdown('<div style="margin: 8px 0;"></div>', unsafe_allow_html=True)
                         
-                        # Compact voice sample button
-                        if st.button("🔊 Sample", key="voice_sample", 
+                        # Small voice sample button
+                        if st.button("🔊 Test", key="voice_sample", 
                                    help="Generate a sample to hear this voice",
                                    use_container_width=True):
                             with st.spinner("Generating..."):
-                                sample_text = "Hello! This is a sample of my voice."
+                                sample_text = "Hello! This is a sample."
                                 sample_audio = generate_voice_elevenlabs(
                                     sample_text, 
                                     elevenlab_api_key, 
@@ -613,10 +615,10 @@ if voices_loaded and avatars_loaded:
                                 else:
                                     st.error("Failed to generate sample")
                     else:
-                        st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
+                        st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select voice</div>', 
                                   unsafe_allow_html=True)
                 else:
-                    st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select voice</div>', 
                               unsafe_allow_html=True)
                 
                 st.markdown('</div>', unsafe_allow_html=True)
