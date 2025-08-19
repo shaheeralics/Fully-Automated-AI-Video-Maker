@@ -56,6 +56,22 @@ st.markdown("<br>", unsafe_allow_html=True)
 gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else None
 elevenlab_api_key = st.secrets["elevenlab_api"] if "elevenlab_api" in st.secrets else None
 
+# ElevenLabs get voices function (must be defined before use)
+def get_elevenlabs_voices(api_key):
+    url = "https://api.elevenlabs.io/v1/voices"
+    headers = {"xi-api-key": api_key}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            voices_data = response.json()
+            return voices_data.get('voices', [])
+        else:
+            st.error(f"Failed to load voices: {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error loading voices: {str(e)}")
+        return []
+
 # First line: HeyGen API, YouTube API, Load Voices
 col_a, col_b, col_c = st.columns(3)
 
@@ -149,22 +165,6 @@ def generate_voice_elevenlabs(script, api_key, voice_id):
     else:
         st.error(f"ElevenLabs API error: {response.status_code}")
         return None
-
-# ElevenLabs get voices
-def get_elevenlabs_voices(api_key):
-    url = "https://api.elevenlabs.io/v1/voices"
-    headers = {"xi-api-key": api_key}
-    try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            voices_data = response.json()
-            return voices_data.get('voices', [])
-        else:
-            st.error(f"Failed to load voices: {response.status_code}")
-            return []
-    except Exception as e:
-        st.error(f"Error loading voices: {str(e)}")
-        return []
 
 # HeyGen API call (placeholder)
 def generate_video_heygen(audio_bytes, api_key, avatar_id):
