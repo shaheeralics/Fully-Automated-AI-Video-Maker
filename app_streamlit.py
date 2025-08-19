@@ -55,6 +55,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 # API keys from Streamlit secrets
 gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else None
 elevenlab_api_key = st.secrets["elevenlab_api"] if "elevenlab_api" in st.secrets else None
+heygen_api_key = st.secrets["heygen_api"] if "heygen_api" in st.secrets else None
 
 # ElevenLabs get voices function (must be defined before use)
 def get_elevenlabs_voices(api_key):
@@ -154,72 +155,55 @@ def upload_to_youtube(video_file, title, api_key):
     # Placeholder for YouTube API integration
     return "https://youtube.com/watch?v=placeholder"
 
-# Single line: HeyGen API, Load Avatars, Avatar Dropdown, YouTube API, Load Voices, Voice Dropdown
-col_a, col_b, col_c, col_d, col_e, col_f = st.columns([1.2, 0.8, 1.2, 1.2, 0.8, 1.2])
+# Single line: Load Avatars and Voices button, Select Avatar dropdown, Select Voice dropdown (centered)
+col_left, col_center, col_right = st.columns([0.25, 0.5, 0.25])
 
-with col_a:
-    heygen_api_key = st.text_input("HeyGen API Key", type="password", help="Required for avatar video generation")
-
-with col_b:
-    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
-    if st.button("Load Avatars", help="Load available HeyGen avatars"):
-        if heygen_api_key:
-            with st.spinner("Loading avatars..."):
-                avatars = get_heygen_avatars(heygen_api_key)
-                if avatars:
-                    st.session_state.available_avatars = avatars
-                    st.session_state.avatars_loaded = True
-                else:
-                    st.session_state.avatar_error = True
-
-with col_c:
-    # Avatar dropdown or error (only shows if loaded successfully or error)
-    if 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded:
-        avatar_options = [(f"{avatar['avatar_name']}", avatar['avatar_id']) for avatar in st.session_state.available_avatars]
-        selected_avatar = st.selectbox(
-            "Select Avatar", 
-            avatar_options,
-            format_func=lambda x: x[0],
-            key="avatar_selector"
-        )
-        if selected_avatar:
-            st.session_state.selected_avatar_id = selected_avatar[1]
-    elif 'avatar_error' in st.session_state and st.session_state.avatar_error:
-        st.markdown('<div style="margin-top: 35px;"></div>', unsafe_allow_html=True)
-        st.markdown('<p style="font-size:0.8em; color:#ff6666; margin-bottom:0;">Failed to load avatars</p>', unsafe_allow_html=True)
-
-with col_d:
-    youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
-
-with col_e:
-    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
-    if st.button("Load Voices", help="Load available ElevenLabs voices"):
-        if elevenlab_api_key:
-            with st.spinner("Loading voices..."):
-                voices = get_elevenlabs_voices(elevenlab_api_key)
-                if voices:
-                    st.session_state.available_voices = voices
-                    st.session_state.voices_loaded = True
-                else:
-                    st.session_state.voice_error = True
-        else:
-            st.session_state.voice_error = True
-
-with col_f:
-    # Voice dropdown or error (only shows if loaded successfully or error)
-    if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
-        voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
-        selected_voice = st.selectbox(
-            "Select Voice", 
-            voice_options,
-            format_func=lambda x: x[0],
-            key="voice_selector"
-        )
-        if selected_voice:
-            st.session_state.selected_voice_id = selected_voice[1]
-    elif 'voice_error' in st.session_state and st.session_state.voice_error:
-        st.markdown('<div style="margin-top: 35px;"></div>', unsafe_allow_html=True)
-        st.markdown('<p style="font-size:0.8em; color:#ff6666; margin-bottom:0;">Failed to load voices</p>', unsafe_allow_html=True)
+with col_center:
+    # Three columns within center: button, avatar dropdown, voice dropdown
+    btn_col, avatar_col, voice_col = st.columns([1, 1, 1])
+    
+    with btn_col:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+        if st.button("Load Avatars and Voices", key="load_all"):
+            if heygen_api_key and elevenlab_api_key:
+                with st.spinner("Loading avatars and voices..."):
+                    # Load avatars
+                    avatars = get_heygen_avatars(heygen_api_key)
+                    if avatars:
+                        st.session_state.available_avatars = avatars
+                        st.session_state.avatars_loaded = True
+                    
+                    # Load voices
+                    voices = get_elevenlabs_voices(elevenlab_api_key)
+                    if voices:
+                        st.session_state.available_voices = voices
+                        st.session_state.voices_loaded = True
+    
+    with avatar_col:
+        # Avatar dropdown (shows only if loaded successfully)
+        if 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded:
+            avatar_options = [(f"{avatar['avatar_name']}", avatar['avatar_id']) for avatar in st.session_state.available_avatars]
+            selected_avatar = st.selectbox(
+                "Select Avatar", 
+                avatar_options,
+                format_func=lambda x: x[0],
+                key="avatar_selector"
+            )
+            if selected_avatar:
+                st.session_state.selected_avatar_id = selected_avatar[1]
+    
+    with voice_col:
+        # Voice dropdown (shows only if loaded successfully)
+        if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
+            voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
+            selected_voice = st.selectbox(
+                "Select Voice", 
+                voice_options,
+                format_func=lambda x: x[0],
+                key="voice_selector"
+            )
+            if selected_voice:
+                st.session_state.selected_voice_id = selected_voice[1]
 
 # Second line: Topic input and Create Video button (centered with 15% padding)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
