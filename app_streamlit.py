@@ -257,9 +257,7 @@ def generate_voice_segments_with_delays(script_json, api_key, voice_id):
             segment_text = segment.get('text', '')
             
             if segment_text.strip():
-                st.write(f"Generating voice for segment {i+1}: {segment_text[:50]}...")
-                
-                # Generate audio for this segment
+                # Generate audio for this segment (silent processing)
                 audio_bytes = generate_voice_elevenlabs(segment_text, api_key, voice_id)
                 
                 if audio_bytes:
@@ -272,12 +270,9 @@ def generate_voice_segments_with_delays(script_json, api_key, voice_id):
                         'text': segment_text
                     })
                     
-                    st.success(f"✅ Segment {i+1} generated successfully")
-                    
                     # Add small delay between API calls to avoid rate limiting
                     time.sleep(0.5)
                 else:
-                    st.error(f"❌ Failed to generate voice for segment {i+1}: {segment_text[:50]}...")
                     return None
         
         return audio_segments
@@ -516,41 +511,94 @@ with col_center:
             script_json = st.session_state.generated_script
             
             if isinstance(script_json, dict):
-                st.info("Generating voice segments...")
-                
-                # Generate individual voice segments
-                audio_segments = generate_voice_segments_with_delays(script_json, elevenlab_api_key, voice_id)
-                
-                if audio_segments:
-                    # Store segments for later use
-                    st.session_state.generated_audio_segments = audio_segments
+                with st.spinner("Generating voice segments..."):
+                    # Generate individual voice segments
+                    audio_segments = generate_voice_segments_with_delays(script_json, elevenlab_api_key, voice_id)
                     
-                    # Simple concatenation (basic approach)
-                    combined_audio = concatenate_audio_segments(audio_segments)
-                    
-                    if combined_audio:
-                        st.session_state.generated_audio = combined_audio
+                    if audio_segments:
+                        # Store segments for later use
+                        st.session_state.generated_audio_segments = audio_segments
                         
-                        # Display success and audio player
-                        st.success(f"✅ Generated {len(audio_segments)} voice segments!")
-                        st.audio(combined_audio, format="audio/mp3")
+                        # Simple concatenation (basic approach)
+                        combined_audio = concatenate_audio_segments(audio_segments)
                         
-                        # Show individual segments for download/preview
-                        with st.expander("Individual Voice Segments"):
-                            for i, segment in enumerate(audio_segments):
-                                st.write(f"**Segment {i+1}:** {segment['text'][:50]}...")
-                                st.write(f"Time: {segment['start_time']}-{segment['end_time']}s, Delay: {segment['delay_after']}s")
-                                st.audio(segment['audio'], format="audio/mp3")
-                                st.write("---")
+                        if combined_audio:
+                            st.session_state.generated_audio = combined_audio
+                            st.session_state.audio_ready = True
+                        else:
+                            st.error("Failed to combine audio segments")
                     else:
-                        st.error("Failed to combine audio segments")
-                else:
-                    st.error("Failed to generate voice segments")
+                        st.error("Failed to generate voice segments")
             else:
                 st.error("Script is not in JSON format. Please regenerate the script.")
                 
         except Exception as e:
             st.error(f"Voice generation error: {str(e)}")
+
+# Third line: Generated Audio Player and Download (futuristic design)
+if st.session_state.get('audio_ready', False):
+    st.markdown('<div style="margin-top: 60px;"></div>', unsafe_allow_html=True)  # Add padding from second line
+    
+    # Futuristic styling for audio section
+    st.markdown("""
+    <style>
+    .audio-container {
+        background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(128,0,255,0.1) 100%);
+        border: 1px solid rgba(0,255,255,0.3);
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        margin: 20px 0;
+    }
+    .audio-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 20px;
+    }
+    .download-btn {
+        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 15px;
+        transition: all 0.3s ease;
+    }
+    .download-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,255,255,0.4);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col_left_audio, col_center_audio, col_right_audio = st.columns([0.15, 0.7, 0.15])
+    
+    with col_center_audio:
+        st.markdown('<div class="audio-container">', unsafe_allow_html=True)
+        st.markdown('<h2 class="audio-title">🎵 Generated Voice Audio</h2>', unsafe_allow_html=True)
+        
+        # Audio player
+        if st.session_state.get('generated_audio'):
+            st.audio(st.session_state.generated_audio, format="audio/mp3")
+            
+            # Download button
+            import base64
+            audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
+            href = f'data:audio/mp3;base64,{audio_b64}'
+            
+            st.markdown(f'''
+                <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
+                    💾 Download Audio
+                </a>
+            ''', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
