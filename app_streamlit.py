@@ -444,90 +444,13 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
         except Exception as e2:
             st.warning(f"Streaming approach failed: {str(e2)}")
         
-        # Fallback: Use text with a note about the voice
-        st.warning("⚠️ Could not upload custom audio. Using HeyGen's built-in voice as fallback.")
-        st.info("💡 Your ElevenLabs audio is still available in the Generated Audio section for download.")
+        # Fallback: STOP if we can't use custom audio
+        st.error("❌ Could not upload your custom ElevenLabs audio to HeyGen")
+        st.error("🚫 Video generation cancelled - we need your custom voice for proper lip-sync")
+        st.info("💡 Your ElevenLabs audio is available in the Generated Audio section")
+        st.info("🔧 Please check your HeyGen API plan or try again later")
         
-        # Get script text for fallback
-        script_text = ""
-        if st.session_state.get('generated_script'):
-            script_data = st.session_state.get('generated_script')
-            if isinstance(script_data, dict):
-                segments = script_data.get('segments', [])
-                script_text = " ".join([seg.get('text', '') for seg in segments])
-        
-        if not script_text:
-            st.error("No script text available")
-            return None
-        
-        # Generate with text as fallback
-        video_url = "https://api.heygen.com/v2/video/generate"
-        
-        video_headers = {
-            "X-API-KEY": api_key,
-            "Content-Type": "application/json"
-        }
-        
-        payload = {
-            "video_inputs": [
-                {
-                    "character": {
-                        "type": "avatar",
-                        "avatar_id": avatar_id
-                    },
-                    "voice": {
-                        "type": "text",
-                        "input_text": script_text,
-                        "voice_id": "1bd001e7e50f421d891986aad5158bc8"
-                    }
-                }
-            ],
-            "dimension": {
-                "width": 720,
-                "height": 480
-            },
-            "aspect_ratio": "16:9"
-        }
-        
-        response = requests.post(video_url, json=payload, headers=video_headers)
-        
-        if response.status_code == 200:
-            result = response.json()
-            video_id = result.get('data', {}).get('video_id')
-            
-            if video_id:
-                st.info(f"Video generation started with ID: {video_id}")
-                
-                status_url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
-                
-                max_attempts = 60
-                for attempt in range(max_attempts):
-                    status_response = requests.get(status_url, headers=headers)
-                    
-                    if status_response.status_code == 200:
-                        status_data = status_response.json()
-                        video_status = status_data.get('data', {}).get('status')
-                        
-                        st.info(f"Video status: {video_status} (attempt {attempt + 1})")
-                        
-                        if video_status == 'completed':
-                            video_url_result = status_data.get('data', {}).get('video_url')
-                            if video_url_result:
-                                video_response = requests.get(video_url_result)
-                                if video_response.status_code == 200:
-                                    return video_response.content
-                        elif video_status == 'failed':
-                            error_msg = status_data.get('data', {}).get('error', 'Unknown error')
-                            st.error(f"Video generation failed: {error_msg}")
-                            return None
-                    
-                    time.sleep(10)
-                
-                st.error("Video generation timed out")
-                return None
-        else:
-            st.error(f"Fallback video generation failed: {response.status_code} - {response.text}")
-            return None
+        return None
             
     except Exception as e:
         st.error(f"Video generation error: {str(e)}")
