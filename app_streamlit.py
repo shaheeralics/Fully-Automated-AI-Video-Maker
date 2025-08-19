@@ -98,7 +98,7 @@ with col_c:
 with col_d:
     # Small text showing loaded voices count
     if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
-        st.markdown('<div style="margin-top: 8px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top: 35px;"></div>', unsafe_allow_html=True)
         st.markdown(f'<p style="font-size:0.8em; color:#a0a0ff; margin-bottom:0;">{len(st.session_state.available_voices)} voices loaded</p>', unsafe_allow_html=True)
 
 with col_e:
