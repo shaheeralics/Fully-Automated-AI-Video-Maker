@@ -375,32 +375,12 @@ if not voices_loaded or not avatars_loaded:
                     # Force refresh to show new layout immediately
                     st.rerun()
 else:
-    # Normal layout when loaded
-    col_left, col_center, col_right = st.columns([0.25, 0.5, 0.25])
+    # Only show dropdowns centered when loaded (no button)
+    col_left, col_center, col_right = st.columns([0.3, 0.4, 0.3])
     
     with col_center:
-        # Three columns within center: button, avatar dropdown, voice dropdown
-        btn_col, avatar_col, voice_col = st.columns([1, 1, 1])
-        
-        with btn_col:
-            st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
-            if st.button("Load Avatars and Voices", key="load_all_loaded"):
-                if heygen_api_key and elevenlab_api_key:
-                    with st.spinner("Loading avatars and voices..."):
-                        # Load avatars
-                        avatars = get_heygen_avatars(heygen_api_key)
-                        if avatars:
-                            st.session_state.available_avatars = avatars
-                            st.session_state.avatars_loaded = True
-                        
-                        # Load voices
-                        voices = get_elevenlabs_voices(elevenlab_api_key)
-                        if voices:
-                            st.session_state.available_voices = voices
-                            st.session_state.voices_loaded = True
-                        
-                        # Force refresh to update dropdowns immediately
-                        st.rerun()
+        # Two columns for avatar and voice dropdowns only
+        avatar_col, voice_col = st.columns(2)
         
         with avatar_col:
             # Avatar dropdown (shows only if loaded successfully)
