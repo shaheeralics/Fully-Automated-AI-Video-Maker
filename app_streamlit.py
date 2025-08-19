@@ -208,7 +208,7 @@ with col_center:
 # Second line: Topic input and Create Video button (centered with adjusted padding)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
 
-col_left, col_center, col_right = st.columns([0.10, 0.7, 0.20])
+col_left, col_center, col_right = st.columns([0.22, 0.7, 0.08])
 
 with col_center:
     # Create two columns within the center: topic field first, then button
