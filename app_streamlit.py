@@ -354,8 +354,8 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
                 }
             ],
             "dimension": {
-                "width": 1920,
-                "height": 1080
+                "width": 720,
+                "height": 480
             },
             "aspect_ratio": "16:9"
         }
