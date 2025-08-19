@@ -57,6 +57,18 @@ gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else Non
 elevenlab_api_key = st.secrets["elevenlab_api"] if "elevenlab_api" in st.secrets else None
 heygen_api_key = st.secrets["heygen_api"] if "heygen_api" in st.secrets else None
 
+# YouTube API credentials from Streamlit secrets
+youtube_credentials = {
+    "client_id": st.secrets.get("youtube_client_id"),
+    "project_id": st.secrets.get("youtube_project_id"),
+    "auth_uri": st.secrets.get("youtube_auth_uri"),
+    "token_uri": st.secrets.get("youtube_token_uri"),
+    "auth_provider_x509_cert_url": st.secrets.get("youtube_auth_provider_x509_cert_url"),
+    "client_secret": st.secrets.get("youtube_client_secret"),
+    "redirect_uris": [st.secrets.get("youtube_redirect_uris")] if st.secrets.get("youtube_redirect_uris") else [],
+    "javascript_origins": [st.secrets.get("youtube_javascript_origins")] if st.secrets.get("youtube_javascript_origins") else []
+}
+
 # ElevenLabs get voices function (must be defined before use)
 def get_elevenlabs_voices(api_key):
     url = "https://api.elevenlabs.io/v1/voices"
@@ -150,10 +162,41 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
     # This would upload audio and sync with avatar
     return "placeholder_video.mp4"
 
-# YouTube upload (placeholder)
-def upload_to_youtube(video_file, title, api_key):
-    # Placeholder for YouTube API integration
-    return "https://youtube.com/watch?v=placeholder"
+# YouTube upload function using credentials from secrets
+def upload_to_youtube(video_file, title, credentials_dict):
+    """
+    Upload video to YouTube using credentials from Streamlit secrets
+    Args:
+        video_file: Path to the video file
+        title: Video title
+        credentials_dict: Dictionary containing YouTube API credentials
+    """
+    try:
+        # Import required libraries for YouTube upload
+        # from google.oauth2.credentials import Credentials
+        # from googleapiclient.discovery import build
+        # from googleapiclient.http import MediaFileUpload
+        
+        # Create credentials object from secrets
+        # client_config = {
+        #     "web": {
+        #         "client_id": credentials_dict["client_id"],
+        #         "client_secret": credentials_dict["client_secret"],
+        #         "auth_uri": credentials_dict["auth_uri"],
+        #         "token_uri": credentials_dict["token_uri"],
+        #         "redirect_uris": credentials_dict["redirect_uris"]
+        #     }
+        # }
+        
+        # TODO: Implement actual YouTube upload logic here
+        # This would involve OAuth2 flow and video upload
+        
+        # Placeholder return for now
+        return "https://youtube.com/watch?v=placeholder"
+        
+    except Exception as e:
+        st.error(f"YouTube upload error: {str(e)}")
+        return None
 
 # Single line: Load Avatars and Voices button, Select Avatar dropdown, Select Voice dropdown (conditional layout)
 voices_loaded = 'voices_loaded' in st.session_state and st.session_state.voices_loaded
