@@ -332,7 +332,7 @@ st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # 
 # Check if voices and avatars are loaded for conditional styling
 content_enabled = voices_loaded and avatars_loaded
 
-col_left, col_center, col_right = st.columns([0.15, 0.7, 0.15])
+col_left, col_center, col_right = st.columns([0.17, 0.7, 0.13])
 
 with col_center:
     # Create columns: topic field, generate script button, generate voice button, create video (disabled)
