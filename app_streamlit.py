@@ -596,7 +596,7 @@ if st.session_state.get('audio_ready', False):
             
             st.markdown(f'''
                 <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
-                    💾 Download Audio
+                    Download Audio
                 </a>
             ''', unsafe_allow_html=True)
         
