@@ -8,52 +8,43 @@ import os
 import docx
 import requests
 
-# Page config and custom CSS (copied from example)
+# Page config
 st.set_page_config(
     page_title="AI Video Maker",
     page_icon="🎬",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
+# Minimal futuristic styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
     .stApp {
         background: linear-gradient(135deg, #0a0a2e 0%, #1a1a4e 50%, #2a2a6e 100%);
         color: #e0e0ff;
+        font-family: 'Space Grotesk', sans-serif;
     }
-    .main-header {
-        background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(128,0,255,0.1) 100%);
-        border: 1px solid rgba(0,255,255,0.3);
-        padding: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-        border-radius: 15px;
-        backdrop-filter: blur(10px);
-    }
-    .main-header h1 {
-        font-size: 2.5rem;
+    .main-title {
+        font-size: 2rem;
         font-weight: 600;
         background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-family: 'Space Grotesk', sans-serif;
+        text-align: center;
+        margin-bottom: 1rem;
     }
-    .main-header p {
-        color: #a0a0ff;
-        font-size: 1.1rem;
+    .stButton > button {
+        width: 100%;
+        background: linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(128,0,255,0.2) 100%);
+        border: 1px solid rgba(0,255,255,0.5);
+        color: #ffffff;
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Header
-st.markdown("""
-<div class="main-header">
-    <h1>Fully Automated AI Video Maker</h1>
-    <p>Generate YouTube Shorts from a topic using Gemini, ElevenLabs, HeyGen, CapCut/MoviePy, and YouTube APIs</p>
-</div>
-""", unsafe_allow_html=True)
+# Simple title
+st.markdown('<h1 class="main-title">AI Video Maker</h1>', unsafe_allow_html=True)
 
 # API keys from Streamlit secrets
 gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else None
