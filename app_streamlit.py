@@ -480,12 +480,12 @@ if voices_loaded and avatars_loaded:
     </style>
     """, unsafe_allow_html=True)
     
-    col_left_preview, col_center_preview, col_right_preview = st.columns([0.15, 0.7, 0.15])
+    col_left_preview, col_center_preview, col_right_preview = st.columns([0.1, 0.8, 0.1])
     
     with col_center_preview:
-        avatar_preview_col, voice_preview_col = st.columns(2)
+        avatar_preview_col, space_col, voice_preview_col = st.columns([0.45, 0.1, 0.45])
         
-        # Avatar Preview
+        # Avatar Preview Box
         with avatar_preview_col:
             st.markdown('<div class="preview-container">', unsafe_allow_html=True)
             st.markdown('<h3 class="preview-title">🎭 Avatar Preview</h3>', unsafe_allow_html=True)
@@ -499,32 +499,31 @@ if voices_loaded and avatars_loaded:
                         break
                 
                 if selected_avatar_details:
-                    col_img, col_info = st.columns([1, 1])
-                    with col_img:
-                        if 'preview_image_url' in selected_avatar_details:
-                            st.image(selected_avatar_details['preview_image_url'], 
-                                   caption=selected_avatar_details['avatar_name'],
-                                   use_container_width=True)
-                        else:
-                            st.markdown('<div style="text-align: center; padding: 30px;">📸<br>No Preview</div>', 
-                                      unsafe_allow_html=True)
+                    # Center the image
+                    if 'preview_image_url' in selected_avatar_details:
+                        st.image(selected_avatar_details['preview_image_url'], 
+                               caption=selected_avatar_details['avatar_name'],
+                               use_container_width=True)
+                    else:
+                        st.markdown('<div style="text-align: center; padding: 30px; color: rgba(255,255,255,0.7);">📸<br>No Preview Available</div>', 
+                                  unsafe_allow_html=True)
                     
-                    with col_info:
-                        st.markdown(f"**Name:** {selected_avatar_details['avatar_name']}")
-                        if 'gender' in selected_avatar_details:
-                            st.markdown(f"**Gender:** {selected_avatar_details['gender']}")
-                        if 'age' in selected_avatar_details:
-                            st.markdown(f"**Age:** {selected_avatar_details['age']}")
+                    # Avatar info below image
+                    st.markdown(f"**Name:** {selected_avatar_details['avatar_name']}")
+                    if 'gender' in selected_avatar_details:
+                        st.markdown(f"**Gender:** {selected_avatar_details['gender']}")
+                    if 'age' in selected_avatar_details:
+                        st.markdown(f"**Age:** {selected_avatar_details['age']}")
                 else:
-                    st.markdown('<div style="text-align: center; padding: 20px;">Select an avatar to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select an avatar to preview</div>', 
                               unsafe_allow_html=True)
             else:
-                st.markdown('<div style="text-align: center; padding: 20px;">Select an avatar to preview</div>', 
+                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select an avatar to preview</div>', 
                           unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
         
-        # Voice Preview
+        # Voice Preview Box
         with voice_preview_col:
             st.markdown('<div class="preview-container">', unsafe_allow_html=True)
             st.markdown('<h3 class="preview-title">🎤 Voice Preview</h3>', unsafe_allow_html=True)
@@ -542,9 +541,13 @@ if voices_loaded and avatars_loaded:
                     if 'category' in selected_voice_details:
                         st.markdown(f"**Category:** {selected_voice_details['category']}")
                     
-                    # Voice sample button
+                    # Add some spacing
+                    st.markdown('<div style="margin: 15px 0;"></div>', unsafe_allow_html=True)
+                    
+                    # Voice sample button - centered
                     if st.button("🔊 Play Voice Sample", key="voice_sample", 
-                               help="Generate a sample to hear this voice"):
+                               help="Generate a sample to hear this voice",
+                               use_container_width=True):
                         with st.spinner("Generating voice sample..."):
                             sample_text = "Hello! This is a sample of my voice. How do I sound?"
                             sample_audio = generate_voice_elevenlabs(
@@ -558,10 +561,10 @@ if voices_loaded and avatars_loaded:
                             else:
                                 st.error("Failed to generate voice sample")
                 else:
-                    st.markdown('<div style="text-align: center; padding: 20px;">Select a voice to preview</div>', 
+                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select a voice to preview</div>', 
                               unsafe_allow_html=True)
             else:
-                st.markdown('<div style="text-align: center; padding: 20px;">Select a voice to preview</div>', 
+                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5);">Select a voice to preview</div>', 
                           unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
