@@ -762,62 +762,59 @@ if st.session_state.get('audio_ready', False):
         
         # Audio Section
         with audio_col:
-            # Create a visible box using st.container
-            container = st.container(border=True)
-            with container:
-                st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">🎵 Generated Audio</h3>', unsafe_allow_html=True)
+            st.markdown('<div style="border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 10px; padding: 15px; background: rgba(0, 255, 255, 0.05);">', unsafe_allow_html=True)
+            st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">🎵 Generated Audio</h3>', unsafe_allow_html=True)
+            
+            # Audio player
+            if st.session_state.get('generated_audio'):
+                st.audio(st.session_state.generated_audio, format="audio/mp3")
                 
-                # Audio player
-                if st.session_state.get('generated_audio'):
-                    st.audio(st.session_state.generated_audio, format="audio/mp3")
-                    
-                    # Download button
-                    import base64
-                    audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
-                    href = f'data:audio/mp3;base64,{audio_b64}'
-                    
-                    st.markdown(f'''
-                        <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
-                            💾 Download Audio
-                        </a>
-                    ''', unsafe_allow_html=True)
-                else:
-                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Audio will appear here</div>', 
-                              unsafe_allow_html=True)
+                # Download button
+                import base64
+                audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
+                href = f'data:audio/mp3;base64,{audio_b64}'
+                
+                st.markdown(f'''
+                    <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
+                        💾 Download Audio
+                    </a>
+                ''', unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Audio will appear here</div>', 
+                          unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # Video Section (placeholder for now)
         with video_col:
-            # Create a visible box using st.container
-            container = st.container(border=True)
-            with container:
-                st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">🎬 Generated Video</h3>', unsafe_allow_html=True)
+            st.markdown('<div style="border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 10px; padding: 15px; background: rgba(0, 255, 255, 0.05);">', unsafe_allow_html=True)
+            st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">🎬 Generated Video</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.get('generated_video'):
+                st.video(st.session_state.generated_video)
                 
-                if st.session_state.get('generated_video'):
-                    st.video(st.session_state.generated_video)
-                    
-                    st.markdown('''
-                        <a href="#" class="download-btn">
-                            💾 Download Video
-                        </a>
-                    ''', unsafe_allow_html=True)
-                else:
-                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Video will appear here</div>', 
-                              unsafe_allow_html=True)
+                st.markdown('''
+                    <a href="#" class="download-btn">
+                        💾 Download Video
+                    </a>
+                ''', unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Video will appear here</div>', 
+                          unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         
         # Upload Status Section
         with status_col:
-            # Create a visible box using st.container
-            container = st.container(border=True)
-            with container:
-                st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">📤 Upload Status</h3>', unsafe_allow_html=True)
-                
-                if st.session_state.get('video_uploaded'):
-                    st.success("✅ Video uploaded to YouTube!")
-                    if st.session_state.get('youtube_url'):
-                        st.markdown(f'[🎥 Watch on YouTube]({st.session_state.youtube_url})', unsafe_allow_html=True)
-                else:
-                    st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Upload status will appear here</div>', 
-                              unsafe_allow_html=True)
+            st.markdown('<div style="border: 2px solid rgba(0, 255, 255, 0.3); border-radius: 10px; padding: 15px; background: rgba(0, 255, 255, 0.05);">', unsafe_allow_html=True)
+            st.markdown('<h3 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 1rem;">📤 Upload Status</h3>', unsafe_allow_html=True)
+            
+            if st.session_state.get('video_uploaded'):
+                st.success("✅ Video uploaded to YouTube!")
+                if st.session_state.get('youtube_url'):
+                    st.markdown(f'[🎥 Watch on YouTube]({st.session_state.youtube_url})', unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Upload status will appear here</div>', 
+                          unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
