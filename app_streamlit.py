@@ -324,7 +324,109 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
         
         # Try multiple approaches to upload the custom audio
         
-        # Approach 1: Try the v2/assets endpoint
+        # Approach 1: Try the v1/assets endpoint (corrected)
+        try:
+            upload_url = "https://api.heygen.com/v1/assets/upload"
+            
+            # Create a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.mp3') as temp_file:
+                temp_file.write(audio_bytes)
+                temp_file_path = temp_file.name
+            
+            # Upload as multipart form data
+            with open(temp_file_path, 'rb') as audio_file:
+                files = {
+                    'file': ('audio.mp3', audio_file, 'audio/mpeg')
+                }
+                
+                upload_response = requests.post(upload_url, headers=headers, files=files)
+            
+            # Clean up temp file
+            os.unlink(temp_file_path)
+            
+            if upload_response.status_code == 200 or upload_response.status_code == 201:
+                upload_result = upload_response.json()
+                audio_asset_id = upload_result.get('data', {}).get('asset_id') or upload_result.get('data', {}).get('id') or upload_result.get('asset_id') or upload_result.get('id')
+                
+                if audio_asset_id:
+                    st.success(f"✅ Successfully uploaded audio asset: {audio_asset_id}")
+                    
+                    # Generate video using the uploaded audio asset
+                    video_url = "https://api.heygen.com/v2/video/generate"
+                    
+                    video_headers = {
+                        "X-API-KEY": api_key,
+                        "Content-Type": "application/json"
+                    }
+                    
+                    payload = {
+                        "video_inputs": [
+                            {
+                                "character": {
+                                    "type": "avatar",
+                                    "avatar_id": avatar_id
+                                },
+                                "voice": {
+                                    "type": "audio",
+                                    "audio_asset_id": audio_asset_id
+                                }
+                            }
+                        ],
+                        "dimension": {
+                            "width": 720,
+                            "height": 480
+                        },
+                        "aspect_ratio": "16:9"
+                    }
+                    
+                    st.info("🎬 Generating video with your custom ElevenLabs voice...")
+                    
+                    response = requests.post(video_url, json=payload, headers=video_headers)
+                    
+                    if response.status_code == 200:
+                        result = response.json()
+                        video_id = result.get('data', {}).get('video_id')
+                        
+                        if video_id:
+                            st.info(f"Video generation started with ID: {video_id}")
+                            
+                            # Poll for video completion
+                            status_url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
+                            
+                            max_attempts = 60
+                            for attempt in range(max_attempts):
+                                status_response = requests.get(status_url, headers=headers)
+                                
+                                if status_response.status_code == 200:
+                                    status_data = status_response.json()
+                                    video_status = status_data.get('data', {}).get('status')
+                                    
+                                    st.info(f"Video status: {video_status} (attempt {attempt + 1})")
+                                    
+                                    if video_status == 'completed':
+                                        video_url_result = status_data.get('data', {}).get('video_url')
+                                        if video_url_result:
+                                            video_response = requests.get(video_url_result)
+                                            if video_response.status_code == 200:
+                                                return video_response.content
+                                    elif video_status == 'failed':
+                                        error_msg = status_data.get('data', {}).get('error', 'Unknown error')
+                                        st.error(f"Video generation failed: {error_msg}")
+                                        return None
+                                
+                                time.sleep(10)
+                            
+                            st.error("Video generation timed out")
+                            return None
+                    else:
+                        st.error(f"Video generation failed: {response.status_code} - {response.text}")
+            else:
+                st.warning(f"v1/assets/upload failed: {upload_response.status_code} - {upload_response.text}")
+        
+        except Exception as e1:
+            st.warning(f"v1/assets/upload approach failed: {str(e1)}")
+        
+        # Approach 2: Try v2/assets endpoint
         try:
             upload_url = "https://api.heygen.com/v2/assets"
             
@@ -352,7 +454,7 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
                 audio_asset_id = upload_result.get('data', {}).get('asset_id') or upload_result.get('data', {}).get('id')
                 
                 if audio_asset_id:
-                    st.info(f"✅ Successfully uploaded audio asset: {audio_asset_id}")
+                    st.success(f"✅ Successfully uploaded audio asset: {audio_asset_id}")
                     
                     # Generate video using the uploaded audio asset
                     video_url = "https://api.heygen.com/v2/video/generate"
@@ -429,7 +531,88 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
         except Exception as e1:
             st.warning(f"v2/assets approach failed: {str(e1)}")
         
-        # Approach 2: Try streaming avatar API if assets don't work
+        # Approach 3: Try direct audio URL approach
+        try:
+            st.info("🔄 Trying direct audio URL approach...")
+            
+            # Try using audio_url instead of asset upload
+            video_url = "https://api.heygen.com/v2/video/generate"
+            
+            video_headers = {
+                "X-API-KEY": api_key,
+                "Content-Type": "application/json"
+            }
+            
+            # Create a data URL for the audio
+            import base64
+            audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+            audio_data_url = f"data:audio/mpeg;base64,{audio_base64}"
+            
+            payload = {
+                "video_inputs": [
+                    {
+                        "character": {
+                            "type": "avatar",
+                            "avatar_id": avatar_id
+                        },
+                        "voice": {
+                            "type": "audio",
+                            "audio_url": audio_data_url
+                        }
+                    }
+                ],
+                "dimension": {
+                    "width": 720,
+                    "height": 480
+                },
+                "aspect_ratio": "16:9"
+            }
+            
+            response = requests.post(video_url, json=payload, headers=video_headers)
+            
+            if response.status_code == 200:
+                result = response.json()
+                video_id = result.get('data', {}).get('video_id')
+                
+                if video_id:
+                    st.success("✅ Audio URL approach working!")
+                    st.info(f"Video generation started with ID: {video_id}")
+                    
+                    # Poll for video completion
+                    status_url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
+                    
+                    max_attempts = 60
+                    for attempt in range(max_attempts):
+                        status_response = requests.get(status_url, headers=headers)
+                        
+                        if status_response.status_code == 200:
+                            status_data = status_response.json()
+                            video_status = status_data.get('data', {}).get('status')
+                            
+                            st.info(f"Video status: {video_status} (attempt {attempt + 1})")
+                            
+                            if video_status == 'completed':
+                                video_url_result = status_data.get('data', {}).get('video_url')
+                                if video_url_result:
+                                    video_response = requests.get(video_url_result)
+                                    if video_response.status_code == 200:
+                                        return video_response.content
+                            elif video_status == 'failed':
+                                error_msg = status_data.get('data', {}).get('error', 'Unknown error')
+                                st.error(f"Video generation failed: {error_msg}")
+                                return None
+                        
+                        time.sleep(10)
+                    
+                    st.error("Video generation timed out")
+                    return None
+            else:
+                st.warning(f"Audio URL approach failed: {response.status_code} - {response.text}")
+        
+        except Exception as e2:
+            st.warning(f"Audio URL approach failed: {str(e2)}")
+        
+        # Approach 4: Try streaming avatar API if assets don't work
         try:
             st.info("🔄 Trying streaming avatar approach...")
             
