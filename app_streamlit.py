@@ -514,7 +514,7 @@ if voices_loaded and avatars_loaded:
         # Avatar Preview Box
         with avatar_preview_col:
             # Create a visible box using st.container with fixed height
-            container = st.container(border=True, height=180)
+            container = st.container(border=True, height=360)
             with container:
                 st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎭 Avatar</h4>', unsafe_allow_html=True)
                 
@@ -551,7 +551,7 @@ if voices_loaded and avatars_loaded:
         # Voice Preview Box
         with voice_preview_col:
             # Create a visible box using st.container with fixed height
-            container = st.container(border=True, height=180)
+            container = st.container(border=True, height=360)
             with container:
                 st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎤 Voice</h4>', unsafe_allow_html=True)
                 
