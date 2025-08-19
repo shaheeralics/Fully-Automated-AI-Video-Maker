@@ -222,21 +222,21 @@ with col_f:
         st.markdown('<p style="font-size:0.8em; color:#ff6666; margin-bottom:0;">Failed to load voices</p>', unsafe_allow_html=True)
 
 # Second line: Topic input and Create Video button (centered with 15% padding)
-st.markdown("<br>", unsafe_allow_html=True)  # Add padding from first line
+st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
 
 col_left, col_center, col_right = st.columns([0.15, 0.7, 0.15])
 
 with col_center:
-    # Create two columns within the center: button first, then topic field
-    btn_col, topic_col = st.columns([0.3, 0.7])
-    
-    with btn_col:
-        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
-        create_video_clicked = st.button("Create Video", disabled=not st.session_state.get('topic_value', ''), key="create_video")
+    # Create two columns within the center: topic field first, then button
+    topic_col, btn_col = st.columns([0.7, 0.3])
     
     with topic_col:
         topic = st.text_input("Enter your video topic:", placeholder="e.g., AI in Pakistan", key="topic_input")
         st.session_state.topic_value = topic  # Store topic value for button state
+    
+    with btn_col:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+        create_video_clicked = st.button("Create Video", disabled=not st.session_state.get('topic_value', ''), key="create_video")
     
     if create_video_clicked and topic:
         progress_bar = st.progress(0)
