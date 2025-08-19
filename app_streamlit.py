@@ -709,115 +709,114 @@ with col_center:
         except Exception as e:
             st.error(f"Upload error: {str(e)}")
 
-# Third line: Generated Audio Player and Download (futuristic design)
-if st.session_state.get('audio_ready', False):
-    st.markdown('<div style="margin-top: 60px;"></div>', unsafe_allow_html=True)  # Add padding from second line
+# Third line: Generated Audio, Video, and Upload Status (always visible)
+st.markdown('<div style="margin-top: 60px;"></div>', unsafe_allow_html=True)  # Add padding from second line
+
+# Futuristic styling for all sections
+st.markdown("""
+<style>
+.audio-container {
+    background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(128,0,255,0.1) 100%);
+    border: 1px solid rgba(0,255,255,0.3);
+    border-radius: 15px;
+    padding: 15px;
+    text-align: center;
+    margin: 10px 0;
+}
+.audio-title {
+    font-size: 1rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+}
+.download-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(128,0,255,0.2) 100%);
+    border: 1px solid rgba(0,255,255,0.5);
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+.download-btn:hover {
+    background: linear-gradient(135deg, rgba(0,255,255,0.3) 0%, rgba(128,0,255,0.3) 100%);
+    border: 1px solid rgba(0,255,255,0.7);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# Centered layout with equal spacing for third line items
+col_left_audio, col_center_audio, col_right_audio = st.columns([0.05, 0.9, 0.05])
+
+with col_center_audio:
+    # Three equal columns for better distribution (can add video and upload status later)
+    audio_col, video_col, status_col = st.columns([0.33, 0.33, 0.34])
     
-    # Futuristic styling for audio section
-    st.markdown("""
-    <style>
-    .audio-container {
-        background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(128,0,255,0.1) 100%);
-        border: 1px solid rgba(0,255,255,0.3);
-        border-radius: 15px;
-        padding: 15px;
-        text-align: center;
-        margin: 10px 0;
-    }
-    .audio-title {
-        font-size: 1rem;
-        font-weight: 600;
-        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 8px;
-    }
-    .download-btn {
-        width: 100%;
-        background: linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(128,0,255,0.2) 100%);
-        border: 1px solid rgba(0,255,255,0.5);
-        color: #ffffff;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-block;
-        padding: 10px 20px;
-        border-radius: 6px;
-        text-align: center;
-        margin-top: 10px;
-        transition: all 0.3s ease;
-    }
-    .download-btn:hover {
-        background: linear-gradient(135deg, rgba(0,255,255,0.3) 0%, rgba(128,0,255,0.3) 100%);
-        border: 1px solid rgba(0,255,255,0.7);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Audio Section
+    with audio_col:
+        st.markdown('<div class="audio-container">', unsafe_allow_html=True)
+        st.markdown('<h3 class="audio-title">🎵 Generated Audio</h3>', unsafe_allow_html=True)
+        
+        # Audio player
+        if st.session_state.get('generated_audio'):
+            st.audio(st.session_state.generated_audio, format="audio/mp3")
+            
+            # Download button
+            import base64
+            audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
+            href = f'data:audio/mp3;base64,{audio_b64}'
+            
+            st.markdown(f'''
+                <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
+                    💾 Download Audio
+                </a>
+            ''', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Audio will appear here</div>', 
+                      unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Centered layout with equal spacing for third line items
-    col_left_audio, col_center_audio, col_right_audio = st.columns([0.05, 0.9, 0.05])
+    # Video Section (placeholder for now)
+    with video_col:
+        st.markdown('<div class="audio-container">', unsafe_allow_html=True)
+        st.markdown('<h3 class="audio-title">🎬 Generated Video</h3>', unsafe_allow_html=True)
+        
+        if st.session_state.get('generated_video'):
+            st.video(st.session_state.generated_video)
+            
+            st.markdown('''
+                <a href="#" class="download-btn">
+                    💾 Download Video
+                </a>
+            ''', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Video will appear here</div>', 
+                      unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    with col_center_audio:
-        # Three equal columns for better distribution (can add video and upload status later)
-        audio_col, video_col, status_col = st.columns([0.33, 0.33, 0.34])
+    # Upload Status Section
+    with status_col:
+        st.markdown('<div class="audio-container">', unsafe_allow_html=True)
+        st.markdown('<h3 class="audio-title">📤 Upload Status</h3>', unsafe_allow_html=True)
         
-        # Audio Section
-        with audio_col:
-            st.markdown('<div class="audio-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="audio-title">🎵 Generated Audio</h3>', unsafe_allow_html=True)
-            
-            # Audio player
-            if st.session_state.get('generated_audio'):
-                st.audio(st.session_state.generated_audio, format="audio/mp3")
-                
-                # Download button
-                import base64
-                audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
-                href = f'data:audio/mp3;base64,{audio_b64}'
-                
-                st.markdown(f'''
-                    <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
-                        💾 Download Audio
-                    </a>
-                ''', unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Audio will appear here</div>', 
-                          unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+        if st.session_state.get('video_uploaded'):
+            st.success("✅ Video uploaded to YouTube!")
+            if st.session_state.get('youtube_url'):
+                st.markdown(f'[🎥 Watch on YouTube]({st.session_state.youtube_url})', unsafe_allow_html=True)
+        else:
+            st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Upload status will appear here</div>', 
+                      unsafe_allow_html=True)
         
-        # Video Section (placeholder for now)
-        with video_col:
-            st.markdown('<div class="audio-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="audio-title">🎬 Generated Video</h3>', unsafe_allow_html=True)
-            
-            if st.session_state.get('generated_video'):
-                st.video(st.session_state.generated_video)
-                
-                st.markdown('''
-                    <a href="#" class="download-btn">
-                        💾 Download Video
-                    </a>
-                ''', unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Video will appear here</div>', 
-                          unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Upload Status Section
-        with status_col:
-            st.markdown('<div class="audio-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="audio-title">📤 Upload Status</h3>', unsafe_allow_html=True)
-            
-            if st.session_state.get('video_uploaded'):
-                st.success("✅ Video uploaded to YouTube!")
-                if st.session_state.get('youtube_url'):
-                    st.markdown(f'[🎥 Watch on YouTube]({st.session_state.youtube_url})', unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align: center; padding: 40px; color: rgba(255,255,255,0.5); font-size: 0.9rem;">Upload status will appear here</div>', 
-                          unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
