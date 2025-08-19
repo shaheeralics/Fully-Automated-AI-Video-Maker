@@ -155,15 +155,14 @@ def upload_to_youtube(video_file, title, api_key):
     # Placeholder for YouTube API integration
     return "https://youtube.com/watch?v=placeholder"
 
-# Single line: Load Avatars and Voices button, Select Avatar dropdown, Select Voice dropdown (centered)
-col_left, col_center, col_right = st.columns([0.25, 0.5, 0.25])
+# Single line: Load Avatars and Voices button, Select Avatar dropdown, Select Voice dropdown (conditional layout)
+voices_loaded = 'voices_loaded' in st.session_state and st.session_state.voices_loaded
+avatars_loaded = 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded
 
-with col_center:
-    # Three columns within center: button, avatar dropdown, voice dropdown
-    btn_col, avatar_col, voice_col = st.columns([1, 1, 1])
-    
-    with btn_col:
-        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+if not voices_loaded or not avatars_loaded:
+    # Center the button when not loaded
+    col_left, col_center, col_right = st.columns([0.4, 0.2, 0.4])
+    with col_center:
         if st.button("Load Avatars and Voices", key="load_all"):
             if heygen_api_key and elevenlab_api_key:
                 with st.spinner("Loading avatars and voices..."):
@@ -178,35 +177,62 @@ with col_center:
                     if voices:
                         st.session_state.available_voices = voices
                         st.session_state.voices_loaded = True
+else:
+    # Normal layout when loaded
+    col_left, col_center, col_right = st.columns([0.25, 0.5, 0.25])
     
-    with avatar_col:
-        # Avatar dropdown (shows only if loaded successfully)
-        if 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded:
-            avatar_options = [(f"{avatar['avatar_name']}", avatar['avatar_id']) for avatar in st.session_state.available_avatars]
-            selected_avatar = st.selectbox(
-                "Select Avatar", 
-                avatar_options,
-                format_func=lambda x: x[0],
-                key="avatar_selector"
-            )
-            if selected_avatar:
-                st.session_state.selected_avatar_id = selected_avatar[1]
-    
-    with voice_col:
-        # Voice dropdown (shows only if loaded successfully)
-        if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
-            voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
-            selected_voice = st.selectbox(
-                "Select Voice", 
-                voice_options,
-                format_func=lambda x: x[0],
-                key="voice_selector"
-            )
-            if selected_voice:
-                st.session_state.selected_voice_id = selected_voice[1]
+    with col_center:
+        # Three columns within center: button, avatar dropdown, voice dropdown
+        btn_col, avatar_col, voice_col = st.columns([1, 1, 1])
+        
+        with btn_col:
+            st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+            if st.button("Load Avatars and Voices", key="load_all_loaded"):
+                if heygen_api_key and elevenlab_api_key:
+                    with st.spinner("Loading avatars and voices..."):
+                        # Load avatars
+                        avatars = get_heygen_avatars(heygen_api_key)
+                        if avatars:
+                            st.session_state.available_avatars = avatars
+                            st.session_state.avatars_loaded = True
+                        
+                        # Load voices
+                        voices = get_elevenlabs_voices(elevenlab_api_key)
+                        if voices:
+                            st.session_state.available_voices = voices
+                            st.session_state.voices_loaded = True
+        
+        with avatar_col:
+            # Avatar dropdown (shows only if loaded successfully)
+            if avatars_loaded:
+                avatar_options = [(f"{avatar['avatar_name']}", avatar['avatar_id']) for avatar in st.session_state.available_avatars]
+                selected_avatar = st.selectbox(
+                    "Select Avatar", 
+                    avatar_options,
+                    format_func=lambda x: x[0],
+                    key="avatar_selector"
+                )
+                if selected_avatar:
+                    st.session_state.selected_avatar_id = selected_avatar[1]
+        
+        with voice_col:
+            # Voice dropdown (shows only if loaded successfully)
+            if voices_loaded:
+                voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
+                selected_voice = st.selectbox(
+                    "Select Voice", 
+                    voice_options,
+                    format_func=lambda x: x[0],
+                    key="voice_selector"
+                )
+                if selected_voice:
+                    st.session_state.selected_voice_id = selected_voice[1]
 
-# Second line: Topic input and Create Video button (centered with adjusted padding)
+# Second line: Topic input and Create Video button (conditional styling)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
+
+# Check if voices and avatars are loaded for conditional styling
+content_enabled = voices_loaded and avatars_loaded
 
 col_left, col_center, col_right = st.columns([0.22, 0.7, 0.08])
 
@@ -215,12 +241,21 @@ with col_center:
     topic_col, btn_col = st.columns([0.7, 0.3])
     
     with topic_col:
-        topic = st.text_input("Enter your video topic:", placeholder="e.g., AI in Pakistan", key="topic_input")
-        st.session_state.topic_value = topic  # Store topic value for button state
+        topic = st.text_input(
+            "Enter your video topic:", 
+            placeholder="e.g., AI in Pakistan", 
+            key="topic_input",
+            disabled=not content_enabled
+        )
+        st.session_state.topic_value = topic if content_enabled else ""  # Store topic value for button state
     
     with btn_col:
         st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
-        create_video_clicked = st.button("Create Video", disabled=not st.session_state.get('topic_value', ''), key="create_video")
+        create_video_clicked = st.button(
+            "Create Video", 
+            disabled=not content_enabled or not st.session_state.get('topic_value', ''), 
+            key="create_video"
+        )
     
     if create_video_clicked and topic:
         progress_bar = st.progress(0)
