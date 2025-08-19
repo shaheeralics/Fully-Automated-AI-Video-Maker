@@ -513,21 +513,9 @@ if voices_loaded and avatars_loaded:
         
         # Avatar Preview Box
         with avatar_preview_col:
-            # Create a visible box using st.container and custom styling
-            container = st.container(border=True)
+            # Create a visible box using st.container with fixed height
+            container = st.container(border=True, height=180)
             with container:
-                st.markdown("""
-                <div style="
-                    background: linear-gradient(135deg, rgba(0,255,255,0.08) 0%, rgba(128,0,255,0.08) 100%);
-                    border-radius: 8px;
-                    padding: 8px;
-                    margin: -10px;
-                    height: 180px;
-                    display: flex;
-                    flex-direction: column;
-                ">
-                """, unsafe_allow_html=True)
-                
                 st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎭 Avatar</h4>', unsafe_allow_html=True)
                 
                 if st.session_state.get('selected_avatar_id'):
@@ -559,26 +547,12 @@ if voices_loaded and avatars_loaded:
                 else:
                     st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select avatar</div>', 
                               unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
         
         # Voice Preview Box
         with voice_preview_col:
-            # Create a visible box using st.container and custom styling
-            container = st.container(border=True)
+            # Create a visible box using st.container with fixed height
+            container = st.container(border=True, height=180)
             with container:
-                st.markdown("""
-                <div style="
-                    background: linear-gradient(135deg, rgba(0,255,255,0.08) 0%, rgba(128,0,255,0.08) 100%);
-                    border-radius: 8px;
-                    padding: 8px;
-                    margin: -10px;
-                    height: 180px;
-                    display: flex;
-                    flex-direction: column;
-                ">
-                """, unsafe_allow_html=True)
-                
                 st.markdown('<h4 style="text-align: center; color: #00ffff; margin: 8px 0; font-size: 0.85rem;">🎤 Voice</h4>', unsafe_allow_html=True)
                 
                 if st.session_state.get('selected_voice_id'):
@@ -620,8 +594,6 @@ if voices_loaded and avatars_loaded:
                 else:
                     st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5); font-size: 0.7rem;">Select voice</div>', 
                               unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
 
 # Second line: Topic input and testing buttons (conditional styling)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
