@@ -559,20 +559,22 @@ if st.session_state.get('audio_ready', False):
         margin-bottom: 20px;
     }
     .download-btn {
-        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
-        border: none;
-        border-radius: 25px;
-        padding: 12px 30px;
-        color: white;
+        width: 100%;
+        background: linear-gradient(135deg, rgba(0,255,255,0.2) 0%, rgba(128,0,255,0.2) 100%);
+        border: 1px solid rgba(0,255,255,0.5);
+        color: #ffffff;
         font-weight: 600;
         text-decoration: none;
         display: inline-block;
+        padding: 12px 30px;
+        border-radius: 6px;
+        text-align: center;
         margin-top: 15px;
         transition: all 0.3s ease;
     }
     .download-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,255,255,0.4);
+        background: linear-gradient(135deg, rgba(0,255,255,0.3) 0%, rgba(128,0,255,0.3) 100%);
+        border: 1px solid rgba(0,255,255,0.7);
     }
     </style>
     """, unsafe_allow_html=True)
