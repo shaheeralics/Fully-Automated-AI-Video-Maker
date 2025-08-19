@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.env
+*.env
+assets/*.docx
+assets/*.mp3
+assets/*.mp4
