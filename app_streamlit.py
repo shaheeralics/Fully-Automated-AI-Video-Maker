@@ -64,11 +64,11 @@ youtube_api_key = st.text_input("YouTube Data API Key", type="password", help="R
 heygen_api_key = st.text_input("HeyGen API Key", type="password", help="Required for avatar video generation")
 
 # Step 1: Topic Input
-st.markdown('<div class="section-header"><h3>🎯 Enter Video Topic</h3></div>', unsafe_allow_html=True)
-topic = st.text_input("Video Topic", placeholder="Enter your video topic here...")
+st.subheader("Video Topic")
+topic = st.text_input("Enter your video topic:")
 
 # Step 2: Script Generation (Gemini)
-st.markdown('<div class="section-header"><h3>📝 Script Generation (Gemini API)</h3></div>', unsafe_allow_html=True)
+st.subheader("Script Generation (Gemini API)")
 
 # Load prompt.txt
 def load_prompt():
@@ -114,11 +114,10 @@ if st.button("Generate Script", disabled=not topic):
         script = generate_script_gemini(topic, prompt, samples, gemini_api_key)
         st.session_state.generated_script = script
         st.success("Script generated!")
-        st.markdown("### Generated Script")
-        st.markdown(f"<pre style='font-size:1.1em;background:#222;color:#e0e0ff;padding:1em;border-radius:8px'>{script}</pre>", unsafe_allow_html=True)
+    st.text_area("Generated Script", value=script, height=300)
 
 # Step 3: Voice Generation (ElevenLabs)
-st.markdown('<div class="section-header"><h3>🔊 Voice Generation (ElevenLabs API)</h3></div>', unsafe_allow_html=True)
+st.subheader("Voice Generation (ElevenLabs API)")
 
 # ElevenLabs API call
 def generate_voice_elevenlabs(script, api_key, voice_id="your_cloned_voice_id"):
@@ -160,19 +159,19 @@ if st.button("Generate Voice", disabled="generated_script" not in st.session_sta
             )
 
 # Step 4: AI Video Generation (HeyGen)
-st.markdown('<div class="section-header"><h3>🧑‍💻 AI Video Generation (HeyGen API)</h3></div>', unsafe_allow_html=True)
+st.subheader("AI Video Generation (HeyGen API)")
 if st.button("Generate Talking Video", disabled=True):
     st.info("Video generation with HeyGen API will be implemented here.")
     # TODO: Sync generated voice with avatar
 
 # Step 5: Editing Layer (CapCut/MoviePy)
-st.markdown('<div class="section-header"><h3>🎬 Editing Layer (Subtitles, Transitions, Emojis, Zoom Cuts)</h3></div>', unsafe_allow_html=True)
+st.subheader("Editing Layer (Subtitles, Transitions, Zoom Cuts)")
 if st.button("Edit Video", disabled=True):
     st.info("Editing with CapCut API or MoviePy will be implemented here.")
     # TODO: Auto-generate subtitles, add transitions/emojis/zoom cuts
 
 # Step 6: Upload to YouTube Shorts
-st.markdown('<div class="section-header"><h3>📤 Upload to YouTube Shorts</h3></div>', unsafe_allow_html=True)
+st.subheader("Upload to YouTube Shorts")
 title = st.text_input("YouTube Title", placeholder="Enter video title...")
 description = st.text_area("YouTube Description", placeholder="Enter video description...")
 tags = st.text_input("YouTube Tags", placeholder="Comma-separated tags...")
