@@ -66,9 +66,34 @@ with col_b:
     youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
 
 with col_c:
-    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+    # Small text showing loaded voices count
+    if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
+        st.markdown(f'<p style="font-size:0.8em; color:#a0a0ff; margin-bottom:0.2rem;">{len(st.session_state.available_voices)} voices loaded</p>', unsafe_allow_html=True)
+    
     if st.button("Load Voices", help="Load available ElevenLabs voices"):
-        st.success("Voices loaded!")
+        if elevenlab_api_key:
+            with st.spinner("Loading voices..."):
+                voices = get_elevenlabs_voices(elevenlab_api_key)
+                if voices:
+                    st.session_state.available_voices = voices
+                    st.session_state.voices_loaded = True
+                    st.success(f"Loaded {len(voices)} voices!")
+                else:
+                    st.error("Failed to load voices")
+        else:
+            st.error("ElevenLabs API key not found in secrets")
+    
+    # Voice dropdown (shows after loading)
+    if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
+        voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
+        selected_voice = st.selectbox(
+            "Select Voice", 
+            voice_options,
+            format_func=lambda x: x[0],
+            key="voice_selector"
+        )
+        if selected_voice:
+            st.session_state.selected_voice_id = selected_voice[1]
 
 # Load prompt.txt
 def load_prompt():
@@ -125,6 +150,22 @@ def generate_voice_elevenlabs(script, api_key, voice_id):
         st.error(f"ElevenLabs API error: {response.status_code}")
         return None
 
+# ElevenLabs get voices
+def get_elevenlabs_voices(api_key):
+    url = "https://api.elevenlabs.io/v1/voices"
+    headers = {"xi-api-key": api_key}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            voices_data = response.json()
+            return voices_data.get('voices', [])
+        else:
+            st.error(f"Failed to load voices: {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error loading voices: {str(e)}")
+        return []
+
 # HeyGen API call (placeholder)
 def generate_video_heygen(audio_bytes, api_key, avatar_id):
     # Placeholder for HeyGen API integration
@@ -141,7 +182,11 @@ col1, col2, col3 = st.columns([1, 2, 1])
 
 with col1:
     st.markdown("**Configuration**")
-    voice_id = st.text_input("Voice ID", value="your_cloned_voice_id", help="ElevenLabs voice", key="voice")
+    # Use selected voice from dropdown if available, otherwise use manual input
+    if 'selected_voice_id' in st.session_state:
+        voice_id = st.text_input("Voice ID", value=st.session_state.selected_voice_id, help="ElevenLabs voice", key="voice")
+    else:
+        voice_id = st.text_input("Voice ID", value="your_cloned_voice_id", help="ElevenLabs voice", key="voice")
     avatar_id = st.text_input("Avatar ID", value="your_avatar_id", help="HeyGen avatar", key="avatar")
 
 with col2:
