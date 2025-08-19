@@ -72,16 +72,47 @@ def get_elevenlabs_voices(api_key):
         st.error(f"Error loading voices: {str(e)}")
         return []
 
-# First line: HeyGen API, YouTube API, Load Voices, Voice Count, Voice Dropdown
-col_a, col_b, col_c, col_d, col_e = st.columns([1.5, 1.5, 1, 1, 1.5])
+# HeyGen get avatars function (must be defined before use)
+def get_heygen_avatars(api_key):
+    url = "https://api.heygen.com/v2/avatars"
+    headers = {"X-API-KEY": api_key}
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            avatars_data = response.json()
+            return avatars_data.get('data', {}).get('avatars', [])
+        else:
+            st.error(f"Failed to load avatars: {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Error loading avatars: {str(e)}")
+        return []
 
-with col_a:
-    heygen_api_key = st.text_input("HeyGen API Key", type="password", help="Required for avatar video generation")
+# First line: Load Avatars, HeyGen API, YouTube API, Load Voices, Voice Count, Voice Dropdown
+col_a, col_b, col_c, col_d, col_e, col_f = st.columns([0.8, 1.2, 1.2, 0.8, 0.8, 1.2])
 
 with col_b:
-    youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
+    heygen_api_key = st.text_input("HeyGen API Key", type="password", help="Required for avatar video generation")
 
 with col_c:
+    youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
+
+with col_a:
+    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+    if st.button("Load Avatars", help="Load available HeyGen avatars"):
+        if heygen_api_key:
+            with st.spinner("Loading avatars..."):
+                avatars = get_heygen_avatars(heygen_api_key)
+                if avatars:
+                    st.session_state.available_avatars = avatars
+                    st.session_state.avatars_loaded = True
+                    st.success(f"Loaded {len(avatars)} avatars!")
+                else:
+                    st.error("Failed to load avatars")
+        else:
+            st.error("HeyGen API key required")
+
+with col_d:
     st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
     if st.button("Load Voices", help="Load available ElevenLabs voices"):
         if elevenlab_api_key:
@@ -96,13 +127,13 @@ with col_c:
         else:
             st.error("ElevenLabs API key not found in secrets")
 
-with col_d:
+with col_e:
     # Small text showing loaded voices count
     if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
         st.markdown('<div style="margin-top: 35px;"></div>', unsafe_allow_html=True)
         st.markdown(f'<p style="font-size:0.8em; color:#a0a0ff; margin-bottom:0;">{len(st.session_state.available_voices)} voices loaded</p>', unsafe_allow_html=True)
 
-with col_e:
+with col_f:
     # Voice dropdown (shows after loading)
     if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
         voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
@@ -114,6 +145,27 @@ with col_e:
         )
         if selected_voice:
             st.session_state.selected_voice_id = selected_voice[1]
+
+# Second line: Avatar count and dropdown
+col_g, col_h = st.columns([1, 5])
+
+with col_g:
+    # Small text showing loaded avatars count
+    if 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded:
+        st.markdown(f'<p style="font-size:0.8em; color:#a0a0ff; margin-bottom:0;">{len(st.session_state.available_avatars)} avatars loaded</p>', unsafe_allow_html=True)
+
+with col_h:
+    # Avatar dropdown (shows after loading)
+    if 'avatars_loaded' in st.session_state and st.session_state.avatars_loaded:
+        avatar_options = [(f"{avatar['avatar_name']}", avatar['avatar_id']) for avatar in st.session_state.available_avatars]
+        selected_avatar = st.selectbox(
+            "Select Avatar", 
+            avatar_options,
+            format_func=lambda x: x[0],
+            key="avatar_selector"
+        )
+        if selected_avatar:
+            st.session_state.selected_avatar_id = selected_avatar[1]
 
 # Load prompt.txt
 def load_prompt():
@@ -191,7 +243,12 @@ with col1:
         voice_id = st.text_input("Voice ID", value=st.session_state.selected_voice_id, help="ElevenLabs voice", key="voice")
     else:
         voice_id = st.text_input("Voice ID", value="your_cloned_voice_id", help="ElevenLabs voice", key="voice")
-    avatar_id = st.text_input("Avatar ID", value="your_avatar_id", help="HeyGen avatar", key="avatar")
+    
+    # Use selected avatar from dropdown if available, otherwise use manual input
+    if 'selected_avatar_id' in st.session_state:
+        avatar_id = st.text_input("Avatar ID", value=st.session_state.selected_avatar_id, help="HeyGen avatar", key="avatar")
+    else:
+        avatar_id = st.text_input("Avatar ID", value="your_avatar_id", help="HeyGen avatar", key="avatar")
 
 with col2:
     st.markdown("**Video Generation**")
