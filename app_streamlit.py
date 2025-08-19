@@ -50,7 +50,7 @@ st.markdown("""
 st.markdown('<h1 class="main-title">Idea to Video</h1>', unsafe_allow_html=True)
 
 # Add space between title and content
-st.markdown("<br>", unsafe_allow_html=True)
+st.markdown('<div style="margin-top: 60px;"></div>', unsafe_allow_html=True)
 
 # API keys from Streamlit secrets
 gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else None
