@@ -122,7 +122,7 @@ def generate_script_gemini(topic, prompt, samples, api_key):
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     
-    # Enhanced prompt to ensure Roman Urdu output
+    # Enhanced prompt to ensure Roman Urdu output in JSON format
     enhanced_prompt = f"""
 {prompt}
 
@@ -140,7 +140,30 @@ Sample Scripts for Reference:
 
 Video Topic: {topic}
 
-Remember: Write ONLY in Roman Urdu with the casual, witty tone as shown in the sample scripts.
+CRITICAL: Return the script in this EXACT JSON format:
+{{
+  "title": "Video title in Roman Urdu",
+  "segments": [
+    {{
+      "start_time": 0,
+      "end_time": 10,
+      "delay_after": 0,
+      "text": "Roman Urdu text for first segment"
+    }},
+    {{
+      "start_time": 10,
+      "end_time": 25,
+      "delay_after": 1,
+      "text": "Roman Urdu text for second segment"
+    }}
+  ]
+}}
+
+Remember: 
+- Write ONLY in Roman Urdu with casual, witty tone
+- Include proper timing based on your script timestamps
+- Add delay_after in seconds for pauses between segments
+- Return ONLY the JSON, no extra text before or after
 """
     
     data = {
@@ -165,7 +188,21 @@ Remember: Write ONLY in Roman Urdu with the casual, witty tone as shown in the s
         if response.status_code == 200:
             result = response.json()
             try:
-                return result['candidates'][0]['content']['parts'][0]['text']
+                script_text = result['candidates'][0]['content']['parts'][0]['text']
+                
+                # Try to parse as JSON
+                import json
+                try:
+                    # Clean up the response (remove markdown formatting if present)
+                    cleaned_text = script_text.strip()
+                    if cleaned_text.startswith('```json'):
+                        cleaned_text = cleaned_text.replace('```json', '').replace('```', '').strip()
+                    
+                    script_json = json.loads(cleaned_text)
+                    return script_json
+                except json.JSONDecodeError:
+                    return f"[Error: Generated script is not valid JSON - {script_text[:200]}...]"
+                    
             except (KeyError, IndexError) as e:
                 return f"[Error: Unexpected Gemini API response format - {str(e)}]"
         else:
@@ -184,7 +221,7 @@ Remember: Write ONLY in Roman Urdu with the casual, witty tone as shown in the s
     except Exception as e:
         return f"[Error: Unexpected error - {str(e)}]"
 
-# ElevenLabs API call
+# ElevenLabs API call for single text
 def generate_voice_elevenlabs(script, api_key, voice_id):
     url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
     headers = {
@@ -203,6 +240,55 @@ def generate_voice_elevenlabs(script, api_key, voice_id):
         return response.content
     else:
         st.error(f"ElevenLabs API error: {response.status_code}")
+        return None
+
+# Generate voice segments with delays from JSON script
+def generate_voice_segments_with_delays(script_json, api_key, voice_id):
+    """
+    Generate voice segments from JSON script with delays
+    Returns combined audio with proper timing
+    """
+    try:
+        import io
+        from pydub import AudioSegment
+        from pydub.silence import Silence
+        
+        combined_audio = AudioSegment.empty()
+        
+        for segment in script_json.get('segments', []):
+            # Generate voice for this segment
+            segment_text = segment.get('text', '')
+            
+            if segment_text.strip():
+                # Generate audio for this segment
+                audio_bytes = generate_voice_elevenlabs(segment_text, api_key, voice_id)
+                
+                if audio_bytes:
+                    # Convert to AudioSegment
+                    audio_segment = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
+                    
+                    # Add the audio segment
+                    combined_audio += audio_segment
+                    
+                    # Add delay after segment if specified
+                    delay_seconds = segment.get('delay_after', 0)
+                    if delay_seconds > 0:
+                        silence = AudioSegment.silent(duration=delay_seconds * 1000)  # Convert to milliseconds
+                        combined_audio += silence
+                else:
+                    st.error(f"Failed to generate voice for segment: {segment_text[:50]}...")
+                    return None
+        
+        # Export combined audio to bytes
+        output_buffer = io.BytesIO()
+        combined_audio.export(output_buffer, format="mp3")
+        return output_buffer.getvalue()
+        
+    except ImportError:
+        st.error("pydub library is required for audio processing. Please install it.")
+        return None
+    except Exception as e:
+        st.error(f"Error generating voice segments: {str(e)}")
         return None
 
 # HeyGen API call (placeholder)
@@ -376,12 +462,28 @@ with col_center:
         try:
             prompt = load_prompt()
             samples = load_sample_scripts()
-            script = generate_script_gemini(topic, prompt, samples, gemini_api_key)
-            st.session_state.generated_script = script
+            script_json = generate_script_gemini(topic, prompt, samples, gemini_api_key)
+            st.session_state.generated_script = script_json
             
             # Display generated script
-            with st.expander("Generated Script", expanded=True):
-                st.text_area("Script Content:", value=script, height=150, key="script_display")
+            if isinstance(script_json, dict):
+                with st.expander("Generated Script JSON", expanded=True):
+                    import json
+                    st.json(script_json)
+                    
+                    # Also show in readable format
+                    st.subheader("Readable Format:")
+                    st.write(f"**Title:** {script_json.get('title', 'No title')}")
+                    
+                    for i, segment in enumerate(script_json.get('segments', [])):
+                        st.write(f"**({segment.get('start_time', 0)}-{segment.get('end_time', 0)} seconds)**")
+                        st.write(f"{segment.get('text', '')}")
+                        if segment.get('delay_after', 0) > 0:
+                            st.write(f"*[Pause: {segment.get('delay_after')} seconds]*")
+                        st.write("---")
+            else:
+                with st.expander("Generated Script (Error)", expanded=True):
+                    st.text_area("Script Content:", value=str(script_json), height=150, key="script_display")
                 
         except Exception as e:
             st.error(f"Script generation error: {str(e)}")
@@ -390,17 +492,31 @@ with col_center:
     if generate_voice_clicked and st.session_state.get('generated_script'):
         try:
             voice_id = st.session_state.get('selected_voice_id', 'your_cloned_voice_id')
-            script = st.session_state.generated_script
-            audio_bytes = generate_voice_elevenlabs(script, elevenlab_api_key, voice_id)
+            script_json = st.session_state.generated_script
             
-            if audio_bytes:
-                st.session_state.generated_audio = audio_bytes
+            if isinstance(script_json, dict):
+                # Generate voice segments with delays
+                audio_bytes = generate_voice_segments_with_delays(script_json, elevenlab_api_key, voice_id)
                 
-                # Display audio player
-                st.audio(audio_bytes, format="audio/mp3")
-                
+                if audio_bytes:
+                    st.session_state.generated_audio = audio_bytes
+                    
+                    # Display audio player
+                    st.success("Voice segments generated with delays!")
+                    st.audio(audio_bytes, format="audio/mp3")
+                    
+                    # Show timing information
+                    with st.expander("Voice Timing Details"):
+                        total_segments = len(script_json.get('segments', []))
+                        st.write(f"Generated {total_segments} voice segments")
+                        
+                        for i, segment in enumerate(script_json.get('segments', [])):
+                            delay = segment.get('delay_after', 0)
+                            st.write(f"Segment {i+1}: \"{segment.get('text', '')[:50]}...\" + {delay}s pause")
+                else:
+                    st.error("Failed to generate voice segments")
             else:
-                st.error("Failed to generate voice")
+                st.error("Script is not in JSON format. Please regenerate the script.")
                 
         except Exception as e:
             st.error(f"Voice generation error: {str(e)}")
