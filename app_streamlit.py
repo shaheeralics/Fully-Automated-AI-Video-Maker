@@ -757,8 +757,8 @@ if st.session_state.get('audio_ready', False):
     col_left_audio, col_center_audio, col_right_audio = st.columns([0.05, 0.9, 0.05])
     
     with col_center_audio:
-        # Three equal columns for better distribution (can add video and upload status later)
-        audio_col, video_col, status_col = st.columns([0.33, 0.33, 0.34])
+        # Three equal columns with equal spacing
+        audio_col, video_col, status_col = st.columns([1, 1, 1])
         
         # Audio Section
         with audio_col:
