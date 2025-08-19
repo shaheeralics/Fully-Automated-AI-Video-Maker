@@ -47,7 +47,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Simple title
-st.markdown('<h1 class="main-title">AI Video Maker</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-title">Idea to Video</h1>', unsafe_allow_html=True)
 
 # Add space between title and content
 st.markdown("<br>", unsafe_allow_html=True)
