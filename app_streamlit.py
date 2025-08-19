@@ -309,9 +309,89 @@ def concatenate_audio_segments(audio_segments):
 
 # HeyGen API call (placeholder)
 def generate_video_heygen(audio_bytes, api_key, avatar_id):
-    # Placeholder for HeyGen API integration
-    # This would upload audio and sync with avatar
-    return "placeholder_video.mp4"
+    """
+    Generate video using HeyGen API with avatar and audio
+    """
+    try:
+        import requests
+        import time
+        import base64
+        
+        # HeyGen API endpoint for video generation
+        url = "https://api.heygen.com/v2/video/generate"
+        
+        # Convert audio bytes to base64
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        
+        headers = {
+            "X-API-KEY": api_key,
+            "Content-Type": "application/json"
+        }
+        
+        # Prepare the request payload
+        payload = {
+            "video_inputs": [
+                {
+                    "character": {
+                        "type": "avatar",
+                        "avatar_id": avatar_id
+                    },
+                    "voice": {
+                        "type": "audio",
+                        "audio_base64": audio_base64
+                    }
+                }
+            ],
+            "dimension": {
+                "width": 1920,
+                "height": 1080
+            }
+        }
+        
+        # Submit video generation request
+        response = requests.post(url, json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            result = response.json()
+            video_id = result.get('data', {}).get('video_id')
+            
+            if video_id:
+                # Poll for video completion
+                status_url = f"https://api.heygen.com/v1/video_status.get?video_id={video_id}"
+                
+                max_attempts = 60  # 5 minutes max wait
+                for attempt in range(max_attempts):
+                    status_response = requests.get(status_url, headers=headers)
+                    
+                    if status_response.status_code == 200:
+                        status_data = status_response.json()
+                        video_status = status_data.get('data', {}).get('status')
+                        
+                        if video_status == 'completed':
+                            video_url = status_data.get('data', {}).get('video_url')
+                            if video_url:
+                                # Download the video
+                                video_response = requests.get(video_url)
+                                if video_response.status_code == 200:
+                                    return video_response.content
+                        elif video_status == 'failed':
+                            st.error("Video generation failed")
+                            return None
+                    
+                    time.sleep(5)  # Wait 5 seconds before next check
+                
+                st.error("Video generation timed out")
+                return None
+            else:
+                st.error("Failed to get video ID from HeyGen")
+                return None
+        else:
+            st.error(f"HeyGen API error: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        st.error(f"Video generation error: {str(e)}")
+        return None
 
 # YouTube upload function using credentials from secrets
 def upload_to_youtube(video_file, title, credentials_dict):
@@ -616,7 +696,7 @@ with col_center:
         st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
         create_video_clicked = st.button(
             "Create Video", 
-            disabled=True,  # Disabled for testing
+            disabled=not content_enabled or not st.session_state.get('generated_audio'), 
             key="create_video"
         )
     
@@ -624,7 +704,7 @@ with col_center:
         st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
         upload_video_clicked = st.button(
             "Upload Video", 
-            disabled=True,  # Will be enabled when video is created
+            disabled=not content_enabled or not st.session_state.get('generated_video'),
             key="upload_video"
         )
     
@@ -689,6 +769,30 @@ with col_center:
                 
         except Exception as e:
             st.error(f"Voice generation error: {str(e)}")
+    
+    # Handle Create Video button click
+    if create_video_clicked and st.session_state.get('generated_audio'):
+        try:
+            avatar_id = st.session_state.get('selected_avatar_id')
+            audio_bytes = st.session_state.get('generated_audio')
+            
+            if not avatar_id:
+                st.error("Please select an avatar first")
+            elif not heygen_api_key:
+                st.error("HeyGen API key not configured")
+            else:
+                with st.spinner("Creating video with avatar... This may take a few minutes..."):
+                    video_bytes = generate_video_heygen(audio_bytes, heygen_api_key, avatar_id)
+                    
+                    if video_bytes:
+                        st.session_state.generated_video = video_bytes
+                        st.session_state.video_ready = True
+                        st.success("✅ Video generated successfully!")
+                    else:
+                        st.error("Failed to generate video")
+                
+        except Exception as e:
+            st.error(f"Video generation error: {str(e)}")
     
     # Handle Upload Video button click
     if upload_video_clicked and st.session_state.get('generated_video'):
