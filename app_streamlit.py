@@ -494,89 +494,113 @@ if voices_loaded and avatars_loaded:
         
         # Avatar Preview Box
         with avatar_preview_col:
-            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="preview-title">🎭 Avatar Preview</h3>', unsafe_allow_html=True)
-            
-            if st.session_state.get('selected_avatar_id'):
-                # Find selected avatar details
-                selected_avatar_details = None
-                for avatar in st.session_state.get('available_avatars', []):
-                    if avatar['avatar_id'] == st.session_state.selected_avatar_id:
-                        selected_avatar_details = avatar
-                        break
+            with st.container():
+                st.markdown("""
+                <div style="
+                    background: linear-gradient(135deg, rgba(0,255,255,0.05) 0%, rgba(128,0,255,0.05) 100%);
+                    border: 1px solid rgba(0,255,255,0.2);
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin: 10px 0;
+                    min-height: 250px;
+                    max-height: 280px;
+                ">
+                """, unsafe_allow_html=True)
                 
-                if selected_avatar_details:
-                    # Compact image display
-                    if 'preview_image_url' in selected_avatar_details:
-                        col1, col2, col3 = st.columns([0.2, 0.6, 0.2])
-                        with col2:
-                            st.image(selected_avatar_details['preview_image_url'], 
-                                   use_container_width=True)
-                    else:
-                        st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem;">📸<br>No Preview</div>', 
-                                  unsafe_allow_html=True)
+                st.markdown('<h3 class="preview-title">🎭 Avatar Preview</h3>', unsafe_allow_html=True)
+                
+                if st.session_state.get('selected_avatar_id'):
+                    # Find selected avatar details
+                    selected_avatar_details = None
+                    for avatar in st.session_state.get('available_avatars', []):
+                        if avatar['avatar_id'] == st.session_state.selected_avatar_id:
+                            selected_avatar_details = avatar
+                            break
                     
-                    # Compact info
-                    st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_avatar_details["avatar_name"]}</div>', unsafe_allow_html=True)
-                    if 'gender' in selected_avatar_details:
-                        st.markdown(f'<div class="compact-info"><strong>Gender:</strong> {selected_avatar_details["gender"]}</div>', unsafe_allow_html=True)
-                    if 'age' in selected_avatar_details:
-                        st.markdown(f'<div class="compact-info"><strong>Age:</strong> {selected_avatar_details["age"]}</div>', unsafe_allow_html=True)
+                    if selected_avatar_details:
+                        # Compact image display
+                        if 'preview_image_url' in selected_avatar_details:
+                            col1, col2, col3 = st.columns([0.2, 0.6, 0.2])
+                            with col2:
+                                st.image(selected_avatar_details['preview_image_url'], 
+                                       use_container_width=True)
+                        else:
+                            st.markdown('<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7); font-size: 0.8rem;">📸<br>No Preview</div>', 
+                                      unsafe_allow_html=True)
+                        
+                        # Compact info
+                        st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_avatar_details["avatar_name"]}</div>', unsafe_allow_html=True)
+                        if 'gender' in selected_avatar_details:
+                            st.markdown(f'<div class="compact-info"><strong>Gender:</strong> {selected_avatar_details["gender"]}</div>', unsafe_allow_html=True)
+                        if 'age' in selected_avatar_details:
+                            st.markdown(f'<div class="compact-info"><strong>Age:</strong> {selected_avatar_details["age"]}</div>', unsafe_allow_html=True)
+                    else:
+                        st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
+                                  unsafe_allow_html=True)
                 else:
                     st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
                               unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select an avatar to preview</div>', 
-                          unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
         
         # Voice Preview Box
         with voice_preview_col:
-            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="preview-title">🎤 Voice Preview</h3>', unsafe_allow_html=True)
-            
-            if st.session_state.get('selected_voice_id'):
-                # Find selected voice details
-                selected_voice_details = None
-                for voice in st.session_state.get('available_voices', []):
-                    if voice['voice_id'] == st.session_state.selected_voice_id:
-                        selected_voice_details = voice
-                        break
+            with st.container():
+                st.markdown("""
+                <div style="
+                    background: linear-gradient(135deg, rgba(0,255,255,0.05) 0%, rgba(128,0,255,0.05) 100%);
+                    border: 1px solid rgba(0,255,255,0.2);
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin: 10px 0;
+                    min-height: 250px;
+                    max-height: 280px;
+                ">
+                """, unsafe_allow_html=True)
                 
-                if selected_voice_details:
-                    # Compact voice info
-                    st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_voice_details["name"]}</div>', unsafe_allow_html=True)
-                    if 'category' in selected_voice_details:
-                        st.markdown(f'<div class="compact-info"><strong>Category:</strong> {selected_voice_details["category"]}</div>', unsafe_allow_html=True)
+                st.markdown('<h3 class="preview-title">🎤 Voice Preview</h3>', unsafe_allow_html=True)
+                
+                if st.session_state.get('selected_voice_id'):
+                    # Find selected voice details
+                    selected_voice_details = None
+                    for voice in st.session_state.get('available_voices', []):
+                        if voice['voice_id'] == st.session_state.selected_voice_id:
+                            selected_voice_details = voice
+                            break
                     
-                    # Compact spacing
-                    st.markdown('<div style="margin: 10px 0;"></div>', unsafe_allow_html=True)
-                    
-                    # Compact voice sample button
-                    if st.button("🔊 Sample", key="voice_sample", 
-                               help="Generate a sample to hear this voice",
-                               use_container_width=True):
-                        with st.spinner("Generating..."):
-                            sample_text = "Hello! This is a sample of my voice."
-                            sample_audio = generate_voice_elevenlabs(
-                                sample_text, 
-                                elevenlab_api_key, 
-                                st.session_state.selected_voice_id
-                            )
-                            
-                            if sample_audio:
-                                st.audio(sample_audio, format="audio/mp3")
-                            else:
-                                st.error("Failed to generate sample")
+                    if selected_voice_details:
+                        # Compact voice info
+                        st.markdown(f'<div class="compact-info"><strong>Name:</strong> {selected_voice_details["name"]}</div>', unsafe_allow_html=True)
+                        if 'category' in selected_voice_details:
+                            st.markdown(f'<div class="compact-info"><strong>Category:</strong> {selected_voice_details["category"]}</div>', unsafe_allow_html=True)
+                        
+                        # Compact spacing
+                        st.markdown('<div style="margin: 10px 0;"></div>', unsafe_allow_html=True)
+                        
+                        # Compact voice sample button
+                        if st.button("🔊 Sample", key="voice_sample", 
+                                   help="Generate a sample to hear this voice",
+                                   use_container_width=True):
+                            with st.spinner("Generating..."):
+                                sample_text = "Hello! This is a sample of my voice."
+                                sample_audio = generate_voice_elevenlabs(
+                                    sample_text, 
+                                    elevenlab_api_key, 
+                                    st.session_state.selected_voice_id
+                                )
+                                
+                                if sample_audio:
+                                    st.audio(sample_audio, format="audio/mp3")
+                                else:
+                                    st.error("Failed to generate sample")
+                    else:
+                        st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
+                                  unsafe_allow_html=True)
                 else:
                     st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
                               unsafe_allow_html=True)
-            else:
-                st.markdown('<div style="text-align: center; padding: 25px; color: rgba(255,255,255,0.5); font-size: 0.8rem;">Select a voice to preview</div>', 
-                          unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
 
 # Second line: Topic input and testing buttons (conditional styling)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
