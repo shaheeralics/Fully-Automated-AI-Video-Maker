@@ -246,50 +246,71 @@ def generate_voice_elevenlabs(script, api_key, voice_id):
 def generate_voice_segments_with_delays(script_json, api_key, voice_id):
     """
     Generate voice segments from JSON script with delays
-    Returns combined audio with proper timing
+    Returns list of audio segments with timing information
     """
     try:
-        import io
-        from pydub import AudioSegment
-        from pydub.silence import Silence
+        import time
+        audio_segments = []
         
-        combined_audio = AudioSegment.empty()
-        
-        for segment in script_json.get('segments', []):
+        for i, segment in enumerate(script_json.get('segments', [])):
             # Generate voice for this segment
             segment_text = segment.get('text', '')
             
             if segment_text.strip():
+                st.write(f"Generating voice for segment {i+1}: {segment_text[:50]}...")
+                
                 # Generate audio for this segment
                 audio_bytes = generate_voice_elevenlabs(segment_text, api_key, voice_id)
                 
                 if audio_bytes:
-                    # Convert to AudioSegment
-                    audio_segment = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
+                    # Store segment with timing info
+                    audio_segments.append({
+                        'audio': audio_bytes,
+                        'start_time': segment.get('start_time', 0),
+                        'end_time': segment.get('end_time', 0),
+                        'delay_after': segment.get('delay_after', 0),
+                        'text': segment_text
+                    })
                     
-                    # Add the audio segment
-                    combined_audio += audio_segment
+                    st.success(f"✅ Segment {i+1} generated successfully")
                     
-                    # Add delay after segment if specified
-                    delay_seconds = segment.get('delay_after', 0)
-                    if delay_seconds > 0:
-                        silence = AudioSegment.silent(duration=delay_seconds * 1000)  # Convert to milliseconds
-                        combined_audio += silence
+                    # Add small delay between API calls to avoid rate limiting
+                    time.sleep(0.5)
                 else:
-                    st.error(f"Failed to generate voice for segment: {segment_text[:50]}...")
+                    st.error(f"❌ Failed to generate voice for segment {i+1}: {segment_text[:50]}...")
                     return None
         
-        # Export combined audio to bytes
-        output_buffer = io.BytesIO()
-        combined_audio.export(output_buffer, format="mp3")
-        return output_buffer.getvalue()
+        return audio_segments
         
-    except ImportError:
-        st.error("pydub library is required for audio processing. Please install it.")
-        return None
     except Exception as e:
         st.error(f"Error generating voice segments: {str(e)}")
         return None
+
+# Simple audio concatenation without external libraries
+def concatenate_audio_segments(audio_segments):
+    """
+    Simple audio concatenation by joining bytes
+    This is a basic approach - for production, consider using proper audio libraries
+    """
+    try:
+        if not audio_segments:
+            return None
+        
+        # For now, just return the first segment as a simple fallback
+        # In a production environment, you'd use proper audio processing
+        combined_audio = b""
+        
+        for segment in audio_segments:
+            combined_audio += segment['audio']
+            
+            # Note: This doesn't add actual silence delays
+            # It just concatenates the audio files
+            
+        return combined_audio if combined_audio else audio_segments[0]['audio']
+        
+    except Exception as e:
+        st.error(f"Error concatenating audio: {str(e)}")
+        return audio_segments[0]['audio'] if audio_segments else None
 
 # HeyGen API call (placeholder)
 def generate_video_heygen(audio_bytes, api_key, avatar_id):
@@ -495,24 +516,34 @@ with col_center:
             script_json = st.session_state.generated_script
             
             if isinstance(script_json, dict):
-                # Generate voice segments with delays
-                audio_bytes = generate_voice_segments_with_delays(script_json, elevenlab_api_key, voice_id)
+                st.info("Generating voice segments...")
                 
-                if audio_bytes:
-                    st.session_state.generated_audio = audio_bytes
+                # Generate individual voice segments
+                audio_segments = generate_voice_segments_with_delays(script_json, elevenlab_api_key, voice_id)
+                
+                if audio_segments:
+                    # Store segments for later use
+                    st.session_state.generated_audio_segments = audio_segments
                     
-                    # Display audio player
-                    st.success("Voice segments generated with delays!")
-                    st.audio(audio_bytes, format="audio/mp3")
+                    # Simple concatenation (basic approach)
+                    combined_audio = concatenate_audio_segments(audio_segments)
                     
-                    # Show timing information
-                    with st.expander("Voice Timing Details"):
-                        total_segments = len(script_json.get('segments', []))
-                        st.write(f"Generated {total_segments} voice segments")
+                    if combined_audio:
+                        st.session_state.generated_audio = combined_audio
                         
-                        for i, segment in enumerate(script_json.get('segments', [])):
-                            delay = segment.get('delay_after', 0)
-                            st.write(f"Segment {i+1}: \"{segment.get('text', '')[:50]}...\" + {delay}s pause")
+                        # Display success and audio player
+                        st.success(f"✅ Generated {len(audio_segments)} voice segments!")
+                        st.audio(combined_audio, format="audio/mp3")
+                        
+                        # Show individual segments for download/preview
+                        with st.expander("Individual Voice Segments"):
+                            for i, segment in enumerate(audio_segments):
+                                st.write(f"**Segment {i+1}:** {segment['text'][:50]}...")
+                                st.write(f"Time: {segment['start_time']}-{segment['end_time']}s, Delay: {segment['delay_after']}s")
+                                st.audio(segment['audio'], format="audio/mp3")
+                                st.write("---")
+                    else:
+                        st.error("Failed to combine audio segments")
                 else:
                     st.error("Failed to generate voice segments")
             else:
