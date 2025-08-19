@@ -277,7 +277,7 @@ else:
                 if selected_voice:
                     st.session_state.selected_voice_id = selected_voice[1]
 
-# Second line: Topic input and Create Video button (conditional styling)
+# Second line: Topic input and testing buttons (conditional styling)
 st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # Add 80px padding from first line
 
 # Check if voices and avatars are loaded for conditional styling
@@ -286,8 +286,8 @@ content_enabled = voices_loaded and avatars_loaded
 col_left, col_center, col_right = st.columns([0.22, 0.7, 0.08])
 
 with col_center:
-    # Create two columns within the center: topic field first, then button
-    topic_col, btn_col = st.columns([0.7, 0.3])
+    # Create columns: topic field, generate script button, generate voice button, create video (disabled)
+    topic_col, script_btn_col, voice_btn_col, video_btn_col = st.columns([0.4, 0.2, 0.2, 0.2])
     
     with topic_col:
         topic = st.text_input(
@@ -298,51 +298,63 @@ with col_center:
         )
         st.session_state.topic_value = topic if content_enabled else ""  # Store topic value for button state
     
-    with btn_col:
+    with script_btn_col:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+        generate_script_clicked = st.button(
+            "Generate Script", 
+            disabled=not content_enabled or not st.session_state.get('topic_value', ''), 
+            key="generate_script"
+        )
+    
+    with voice_btn_col:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+        generate_voice_clicked = st.button(
+            "Generate Voice", 
+            disabled=not content_enabled or not st.session_state.get('generated_script', ''), 
+            key="generate_voice"
+        )
+    
+    with video_btn_col:
         st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
         create_video_clicked = st.button(
             "Create Video", 
-            disabled=not content_enabled or not st.session_state.get('topic_value', ''), 
+            disabled=True,  # Disabled for testing
             key="create_video"
         )
     
-    if create_video_clicked and topic:
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
+    # Handle Generate Script button click
+    if generate_script_clicked and topic:
         try:
-            # Step 1: Generate Script
-            status_text.text("Generating script...")
-            progress_bar.progress(20)
             prompt = load_prompt()
             samples = load_sample_scripts()
             script = generate_script_gemini(topic, prompt, samples, gemini_api_key)
             st.session_state.generated_script = script
             
-            # Step 2: Generate Voice
-            status_text.text("Generating voice...")
-            progress_bar.progress(40)
+            # Display generated script
+            with st.expander("Generated Script", expanded=True):
+                st.text_area("Script Content:", value=script, height=150, key="script_display")
+                
+        except Exception as e:
+            st.error(f"Script generation error: {str(e)}")
+    
+    # Handle Generate Voice button click
+    if generate_voice_clicked and st.session_state.get('generated_script'):
+        try:
             voice_id = st.session_state.get('selected_voice_id', 'your_cloned_voice_id')
+            script = st.session_state.generated_script
             audio_bytes = generate_voice_elevenlabs(script, elevenlab_api_key, voice_id)
+            
             if audio_bytes:
                 st.session_state.generated_audio = audio_bytes
                 
-                # Step 3: Generate Video
-                status_text.text("Creating video with avatar...")
-                progress_bar.progress(70)
-                avatar_id = st.session_state.get('selected_avatar_id', 'your_avatar_id')
-                video_file = generate_video_heygen(audio_bytes, heygen_api_key, avatar_id)
-                st.session_state.generated_video = video_file
+                # Display audio player
+                st.audio(audio_bytes, format="audio/mp3")
                 
-                progress_bar.progress(100)
-                status_text.text("Video ready!")
-                st.session_state.video_ready = True
-                st.success("Video created successfully!")
             else:
                 st.error("Failed to generate voice")
+                
         except Exception as e:
-            st.error(f"Error: {str(e)}")
-
+            st.error(f"Voice generation error: {str(e)}")
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
