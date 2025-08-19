@@ -118,22 +118,49 @@ def load_sample_scripts():
 
 # Gemini API call
 def generate_script_gemini(topic, prompt, samples, api_key):
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + api_key
+    # Updated Gemini API endpoint and model
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
     headers = {"Content-Type": "application/json"}
     data = {
         "contents": [
-            {"parts": [{"text": f"{prompt}\n\nSample Scripts:\n{samples}\n\nVideo Topic: {topic}"}]}
-        ]
+            {
+                "parts": [
+                    {"text": f"{prompt}\n\nSample Scripts:\n{samples}\n\nVideo Topic: {topic}"}
+                ]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.7,
+            "topK": 40,
+            "topP": 0.95,
+            "maxOutputTokens": 2048
+        }
     }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        result = response.json()
-        try:
-            return result['candidates'][0]['content']['parts'][0]['text']
-        except Exception:
-            return "[Error: Unexpected Gemini API response format]"
-    else:
-        return f"[Error: Gemini API returned {response.status_code}]"
+    
+    try:
+        response = requests.post(url, headers=headers, json=data)
+        
+        if response.status_code == 200:
+            result = response.json()
+            try:
+                return result['candidates'][0]['content']['parts'][0]['text']
+            except (KeyError, IndexError) as e:
+                return f"[Error: Unexpected Gemini API response format - {str(e)}]"
+        else:
+            # More detailed error information
+            error_detail = ""
+            try:
+                error_response = response.json()
+                error_detail = f" - {error_response.get('error', {}).get('message', 'Unknown error')}"
+            except:
+                error_detail = f" - Response: {response.text[:200]}"
+            
+            return f"[Error: Gemini API returned {response.status_code}{error_detail}]"
+            
+    except requests.exceptions.RequestException as e:
+        return f"[Error: Network error - {str(e)}]"
+    except Exception as e:
+        return f"[Error: Unexpected error - {str(e)}]"
 
 # ElevenLabs API call
 def generate_voice_elevenlabs(script, api_key, voice_id):
