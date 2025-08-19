@@ -581,11 +581,11 @@ st.markdown('<div style="margin-top: 80px;"></div>', unsafe_allow_html=True)  # 
 # Check if voices and avatars are loaded for conditional styling
 content_enabled = voices_loaded and avatars_loaded
 
-col_left, col_center, col_right = st.columns([0.17, 0.7, 0.13])
+col_left, col_center, col_right = st.columns([0.1, 0.8, 0.1])
 
 with col_center:
-    # Create columns: topic field, generate script button, generate voice button, create video (disabled)
-    topic_col, script_btn_col, voice_btn_col, video_btn_col = st.columns([0.4, 0.2, 0.2, 0.2])
+    # Create columns: topic field, generate script button, generate voice button, create video button, upload video button
+    topic_col, script_btn_col, voice_btn_col, video_btn_col, upload_btn_col = st.columns([0.4, 0.15, 0.15, 0.15, 0.15])
     
     with topic_col:
         topic = st.text_input(
@@ -618,6 +618,14 @@ with col_center:
             "Create Video", 
             disabled=True,  # Disabled for testing
             key="create_video"
+        )
+    
+    with upload_btn_col:
+        st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+        upload_video_clicked = st.button(
+            "Upload Video", 
+            disabled=True,  # Will be enabled when video is created
+            key="upload_video"
         )
     
     # Handle Generate Script button click
@@ -681,6 +689,25 @@ with col_center:
                 
         except Exception as e:
             st.error(f"Voice generation error: {str(e)}")
+    
+    # Handle Upload Video button click
+    if upload_video_clicked and st.session_state.get('generated_video'):
+        try:
+            video_path = st.session_state.get('generated_video')
+            video_title = st.session_state.get('generated_script', {}).get('title', 'AI Generated Video')
+            
+            with st.spinner("Uploading to YouTube..."):
+                youtube_url = upload_to_youtube(video_path, video_title, youtube_credentials)
+                
+                if youtube_url:
+                    st.success(f"✅ Video uploaded successfully!")
+                    st.markdown(f"**YouTube URL:** [Watch Video]({youtube_url})")
+                    st.session_state.video_uploaded = True
+                else:
+                    st.error("Failed to upload video to YouTube")
+                    
+        except Exception as e:
+            st.error(f"Upload error: {str(e)}")
 
 # Third line: Generated Audio Player and Download (futuristic design)
 if st.session_state.get('audio_ready', False):
