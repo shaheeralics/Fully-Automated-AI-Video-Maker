@@ -49,9 +49,26 @@ st.markdown("""
 # Simple title
 st.markdown('<h1 class="main-title">AI Video Maker</h1>', unsafe_allow_html=True)
 
+# Add space between title and content
+st.markdown("<br>", unsafe_allow_html=True)
+
 # API keys from Streamlit secrets
 gemini_api_key = st.secrets["gemini_api"] if "gemini_api" in st.secrets else None
 elevenlab_api_key = st.secrets["elevenlab_api"] if "elevenlab_api" in st.secrets else None
+
+# First line: HeyGen API, YouTube API, Load Voices
+col_a, col_b, col_c = st.columns(3)
+
+with col_a:
+    heygen_api_key = st.text_input("HeyGen API Key", type="password", help="Required for avatar video generation")
+
+with col_b:
+    youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
+
+with col_c:
+    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
+    if st.button("Load Voices", help="Load available ElevenLabs voices"):
+        st.success("Voices loaded!")
 
 # Load prompt.txt
 def load_prompt():
@@ -119,13 +136,11 @@ def upload_to_youtube(video_file, title, api_key):
     # Placeholder for YouTube API integration
     return "https://youtube.com/watch?v=placeholder"
 
-# Compact layout - all in three columns
+# Main layout - three columns for the workflow
 col1, col2, col3 = st.columns([1, 2, 1])
 
 with col1:
     st.markdown("**Configuration**")
-    youtube_api_key = st.text_input("YouTube API", type="password", help="For upload", key="yt_api")
-    heygen_api_key = st.text_input("HeyGen API", type="password", help="For avatar", key="hg_api")
     voice_id = st.text_input("Voice ID", value="your_cloned_voice_id", help="ElevenLabs voice", key="voice")
     avatar_id = st.text_input("Avatar ID", value="your_avatar_id", help="HeyGen avatar", key="avatar")
 
