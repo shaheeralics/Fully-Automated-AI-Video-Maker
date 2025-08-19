@@ -10,7 +10,7 @@ import requests
 
 # Page config
 st.set_page_config(
-    page_title="AI Video Maker",
+    page_title="Idea to Video",
     page_icon="🎬",
     layout="wide"
 )
