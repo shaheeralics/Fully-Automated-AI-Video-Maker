@@ -504,7 +504,7 @@ if voices_loaded and avatars_loaded:
                         if 'preview_image_url' in selected_avatar_details:
                             st.image(selected_avatar_details['preview_image_url'], 
                                    caption=selected_avatar_details['avatar_name'],
-                                   use_column_width=True)
+                                   use_container_width=True)
                         else:
                             st.markdown('<div style="text-align: center; padding: 30px;">📸<br>No Preview</div>', 
                                       unsafe_allow_html=True)
