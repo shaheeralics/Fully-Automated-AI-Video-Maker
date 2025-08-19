@@ -82,7 +82,7 @@ with col_b:
     youtube_api_key = st.text_input("YouTube API Key", type="password", help="Required for uploading video")
 
 with col_c:
-    st.markdown('<div style="margin-top: 48px;"></div>', unsafe_allow_html=True)
+    st.markdown('<div style="margin-top: 28px;"></div>', unsafe_allow_html=True)
     if st.button("Load Voices", help="Load available ElevenLabs voices"):
         if elevenlab_api_key:
             with st.spinner("Loading voices..."):
@@ -105,7 +105,7 @@ with col_d:
 with col_e:
     # Voice dropdown (shows after loading)
     if 'voices_loaded' in st.session_state and st.session_state.voices_loaded:
-        st.markdown('<div style="margin-top: -2px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top: -20px;"></div>', unsafe_allow_html=True)
         voice_options = [(f"{voice['name']}", voice['voice_id']) for voice in st.session_state.available_voices]
         selected_voice = st.selectbox(
             "Select Voice", 
