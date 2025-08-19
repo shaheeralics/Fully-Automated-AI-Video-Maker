@@ -316,19 +316,50 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
         import requests
         import time
         import base64
-        
-        # HeyGen API endpoint for video generation
-        url = "https://api.heygen.com/v2/video/generate"
-        
-        # Convert audio bytes to base64
-        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+        import io
         
         headers = {
+            "X-API-KEY": api_key
+        }
+        
+        # Step 1: Upload audio as an asset first
+        upload_url = "https://api.heygen.com/v1/asset"
+        
+        # Prepare audio file for upload
+        audio_file = io.BytesIO(audio_bytes)
+        audio_file.name = "generated_audio.mp3"
+        
+        files = {
+            'file': ('generated_audio.mp3', audio_file, 'audio/mpeg')
+        }
+        
+        data = {
+            'type': 'audio'
+        }
+        
+        # Upload the audio asset
+        upload_response = requests.post(upload_url, headers=headers, files=files, data=data)
+        
+        if upload_response.status_code != 200:
+            st.error(f"Audio upload failed: {upload_response.status_code} - {upload_response.text}")
+            return None
+        
+        upload_result = upload_response.json()
+        audio_asset_id = upload_result.get('data', {}).get('asset_id')
+        
+        if not audio_asset_id:
+            st.error("Failed to get audio asset ID")
+            return None
+        
+        # Step 2: Generate video using the uploaded audio asset
+        video_url = "https://api.heygen.com/v2/video/generate"
+        
+        video_headers = {
             "X-API-KEY": api_key,
             "Content-Type": "application/json"
         }
         
-        # Prepare the request payload
+        # Prepare the request payload with audio_asset_id
         payload = {
             "video_inputs": [
                 {
@@ -338,7 +369,7 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
                     },
                     "voice": {
                         "type": "audio",
-                        "audio_base64": audio_base64
+                        "audio_asset_id": audio_asset_id
                     }
                 }
             ],
@@ -349,7 +380,7 @@ def generate_video_heygen(audio_bytes, api_key, avatar_id):
         }
         
         # Submit video generation request
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(video_url, json=payload, headers=video_headers)
         
         if response.status_code == 200:
             result = response.json()
