@@ -720,17 +720,17 @@ if st.session_state.get('audio_ready', False):
         background: linear-gradient(135deg, rgba(0,255,255,0.1) 0%, rgba(128,0,255,0.1) 100%);
         border: 1px solid rgba(0,255,255,0.3);
         border-radius: 15px;
-        padding: 25px;
+        padding: 15px;
         text-align: center;
-        margin: 20px 0;
+        margin: 10px 0;
     }
     .audio-title {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
         font-weight: 600;
         background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
     }
     .download-btn {
         width: 100%;
@@ -740,10 +740,10 @@ if st.session_state.get('audio_ready', False):
         font-weight: 600;
         text-decoration: none;
         display: inline-block;
-        padding: 12px 30px;
+        padding: 10px 20px;
         border-radius: 6px;
         text-align: center;
-        margin-top: 15px;
+        margin-top: 10px;
         transition: all 0.3s ease;
     }
     .download-btn:hover {
@@ -753,28 +753,33 @@ if st.session_state.get('audio_ready', False):
     </style>
     """, unsafe_allow_html=True)
     
-    col_left_audio, col_center_audio, col_right_audio = st.columns([0.15, 0.7, 0.15])
+    # Centered layout with equal spacing for third line items
+    col_left_audio, col_center_audio, col_right_audio = st.columns([0.1, 0.8, 0.1])
     
     with col_center_audio:
-        st.markdown('<div class="audio-container">', unsafe_allow_html=True)
-        st.markdown('<h2 class="audio-title">🎵 Generated Voice Audio</h2>', unsafe_allow_html=True)
+        # Equal columns for audio player and any future items (like video preview)
+        audio_col = st.columns(1)[0]  # Single column for now, can expand to [0.5, 0.5] when video is added
         
-        # Audio player
-        if st.session_state.get('generated_audio'):
-            st.audio(st.session_state.generated_audio, format="audio/mp3")
+        with audio_col:
+            st.markdown('<div class="audio-container">', unsafe_allow_html=True)
+            st.markdown('<h2 class="audio-title">🎵 Generated Voice Audio</h2>', unsafe_allow_html=True)
             
-            # Download button
-            import base64
-            audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
-            href = f'data:audio/mp3;base64,{audio_b64}'
+            # Audio player
+            if st.session_state.get('generated_audio'):
+                st.audio(st.session_state.generated_audio, format="audio/mp3")
+                
+                # Download button
+                import base64
+                audio_b64 = base64.b64encode(st.session_state.generated_audio).decode()
+                href = f'data:audio/mp3;base64,{audio_b64}'
+                
+                st.markdown(f'''
+                    <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
+                        💾 Download Audio
+                    </a>
+                ''', unsafe_allow_html=True)
             
-            st.markdown(f'''
-                <a href="{href}" download="generated_voice_audio.mp3" class="download-btn">
-                    Save Audio
-                </a>
-            ''', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
