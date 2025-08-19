@@ -88,6 +88,72 @@ def get_heygen_avatars(api_key):
         st.error(f"Error loading avatars: {str(e)}")
         return []
 
+# Load prompt.txt
+def load_prompt():
+    with open("assets/prompt.txt", encoding="utf-8") as f:
+        return f.read()
+
+# Load sample_scripts.docx
+def load_sample_scripts():
+    doc = docx.Document("assets/sample_scripts.docx")
+    scripts = []
+    for para in doc.paragraphs:
+        text = para.text.strip()
+        if text:
+            scripts.append(text)
+    return "\n".join(scripts)
+
+# Gemini API call
+def generate_script_gemini(topic, prompt, samples, api_key):
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + api_key
+    headers = {"Content-Type": "application/json"}
+    data = {
+        "contents": [
+            {"parts": [{"text": f"{prompt}\n\nSample Scripts:\n{samples}\n\nVideo Topic: {topic}"}]}
+        ]
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        result = response.json()
+        try:
+            return result['candidates'][0]['content']['parts'][0]['text']
+        except Exception:
+            return "[Error: Unexpected Gemini API response format]"
+    else:
+        return f"[Error: Gemini API returned {response.status_code}]"
+
+# ElevenLabs API call
+def generate_voice_elevenlabs(script, api_key, voice_id):
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {
+        "xi-api-key": api_key,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "text": script,
+        "voice_settings": {
+            "stability": 0.5,
+            "similarity_boost": 0.75
+        }
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        return response.content
+    else:
+        st.error(f"ElevenLabs API error: {response.status_code}")
+        return None
+
+# HeyGen API call (placeholder)
+def generate_video_heygen(audio_bytes, api_key, avatar_id):
+    # Placeholder for HeyGen API integration
+    # This would upload audio and sync with avatar
+    return "placeholder_video.mp4"
+
+# YouTube upload (placeholder)
+def upload_to_youtube(video_file, title, api_key):
+    # Placeholder for YouTube API integration
+    return "https://youtube.com/watch?v=placeholder"
+
 # Single line: HeyGen API, Load Avatars, Avatar Dropdown, YouTube API, Load Voices, Voice Dropdown
 col_a, col_b, col_c, col_d, col_e, col_f = st.columns([1.2, 0.8, 1.2, 1.2, 0.8, 1.2])
 
@@ -155,94 +221,13 @@ with col_f:
         st.markdown('<div style="margin-top: 35px;"></div>', unsafe_allow_html=True)
         st.markdown('<p style="font-size:0.8em; color:#ff6666; margin-bottom:0;">Failed to load voices</p>', unsafe_allow_html=True)
 
-# Load prompt.txt
-def load_prompt():
-    with open("assets/prompt.txt", encoding="utf-8") as f:
-        return f.read()
+# Second line: Topic input and Create Video button (centered with 15% padding)
+col_left, col_center, col_right = st.columns([0.15, 0.7, 0.15])
 
-# Load sample_scripts.docx
-def load_sample_scripts():
-    doc = docx.Document("assets/sample_scripts.docx")
-    scripts = []
-    for para in doc.paragraphs:
-        text = para.text.strip()
-        if text:
-            scripts.append(text)
-    return "\n".join(scripts)
-
-# Gemini API call
-def generate_script_gemini(topic, prompt, samples, api_key):
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + api_key
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "contents": [
-            {"parts": [{"text": f"{prompt}\n\nSample Scripts:\n{samples}\n\nVideo Topic: {topic}"}]}
-        ]
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        result = response.json()
-        try:
-            return result['candidates'][0]['content']['parts'][0]['text']
-        except Exception:
-            return "[Error: Unexpected Gemini API response format]"
-    else:
-        return f"[Error: Gemini API returned {response.status_code}]"
-
-# ElevenLabs API call
-def generate_voice_elevenlabs(script, api_key, voice_id):
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-    headers = {
-        "xi-api-key": api_key,
-        "Content-Type": "application/json"
-    }
-    data = {
-        "text": script,
-        "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.75
-        }
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        return response.content
-    else:
-        st.error(f"ElevenLabs API error: {response.status_code}")
-        return None
-
-# HeyGen API call (placeholder)
-def generate_video_heygen(audio_bytes, api_key, avatar_id):
-    # Placeholder for HeyGen API integration
-    # This would upload audio and sync with avatar
-    return "placeholder_video.mp4"
-
-# YouTube upload (placeholder)
-def upload_to_youtube(video_file, title, api_key):
-    # Placeholder for YouTube API integration
-    return "https://youtube.com/watch?v=placeholder"
-
-# Main layout - three columns for the workflow
-col1, col2, col3 = st.columns([1, 2, 1])
-
-with col1:
-    st.markdown("**Configuration**")
-    # Use selected voice from dropdown if available, otherwise use manual input
-    if 'selected_voice_id' in st.session_state:
-        voice_id = st.text_input("Voice ID", value=st.session_state.selected_voice_id, help="ElevenLabs voice", key="voice")
-    else:
-        voice_id = st.text_input("Voice ID", value="your_cloned_voice_id", help="ElevenLabs voice", key="voice")
-    
-    # Use selected avatar from dropdown if available, otherwise use manual input
-    if 'selected_avatar_id' in st.session_state:
-        avatar_id = st.text_input("Avatar ID", value=st.session_state.selected_avatar_id, help="HeyGen avatar", key="avatar")
-    else:
-        avatar_id = st.text_input("Avatar ID", value="your_avatar_id", help="HeyGen avatar", key="avatar")
-
-with col2:
-    st.markdown("**Video Generation**")
+with col_center:
     topic = st.text_input("Enter your video topic:", placeholder="e.g., AI in Pakistan", key="topic_input")
     
-    if st.button("Generate Video", disabled=not topic, key="gen_video"):
+    if st.button("Create Video", disabled=not topic, key="create_video"):
         progress_bar = st.progress(0)
         status_text = st.empty()
         
@@ -258,6 +243,7 @@ with col2:
             # Step 2: Generate Voice
             status_text.text("Generating voice...")
             progress_bar.progress(40)
+            voice_id = st.session_state.get('selected_voice_id', 'your_cloned_voice_id')
             audio_bytes = generate_voice_elevenlabs(script, elevenlab_api_key, voice_id)
             if audio_bytes:
                 st.session_state.generated_audio = audio_bytes
@@ -265,60 +251,19 @@ with col2:
                 # Step 3: Generate Video
                 status_text.text("Creating video with avatar...")
                 progress_bar.progress(70)
+                avatar_id = st.session_state.get('selected_avatar_id', 'your_avatar_id')
                 video_file = generate_video_heygen(audio_bytes, heygen_api_key, avatar_id)
                 st.session_state.generated_video = video_file
                 
                 progress_bar.progress(100)
                 status_text.text("Video ready!")
                 st.session_state.video_ready = True
-                st.success("Video generated successfully!")
+                st.success("Video created successfully!")
             else:
                 st.error("Failed to generate voice")
         except Exception as e:
             st.error(f"Error: {str(e)}")
 
-with col3:
-    st.markdown("**Preview & Upload**")
-    
-    if st.session_state.get('video_ready', False):
-        # Script preview (collapsible)
-        if st.session_state.get('generated_script'):
-            with st.expander("Script", expanded=False):
-                st.text_area("", value=st.session_state.generated_script, height=80, key="script_preview")
-        
-        # Audio preview
-        if st.session_state.get('generated_audio'):
-            st.audio(st.session_state.generated_audio, format="audio/mp3")
-        
-        # Video preview (placeholder)
-        st.video("https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4")
-        
-        # Upload section
-        title = st.text_input("Title", value=f"Video about {topic}" if topic else "My Video", key="video_title")
-        
-        if st.button("Upload to YouTube", key="upload_btn"):
-            with st.spinner("Uploading..."):
-                video_url = upload_to_youtube(st.session_state.generated_video, title, youtube_api_key)
-                st.success(f"Video uploaded! [View]({video_url})")
-    else:
-        st.info("Generate a video to see preview")
-
 # Footer
 st.markdown("---")
 st.caption("AI Video Maker - Powered by Gemini, ElevenLabs, HeyGen & YouTube APIs")
-
-# Step 6: Upload to YouTube Shorts
-st.subheader("Upload to YouTube Shorts")
-title = st.text_input("YouTube Title", placeholder="Enter video title...")
-description = st.text_area("YouTube Description", placeholder="Enter video description...")
-tags = st.text_input("YouTube Tags", placeholder="Comma-separated tags...")
-if st.button("Upload to YouTube Shorts", disabled=True):
-    st.info("YouTube upload will be implemented here.")
-    # TODO: Upload final MP4 to YouTube Shorts
-
-# Footer
-st.markdown("""
-<div style="text-align: center; color: #888; margin-top:2rem; font-size:0.95rem;">
-    Fully Automated AI Video Maker &mdash; Powered by Streamlit, Gemini, ElevenLabs, HeyGen, CapCut, MoviePy, and YouTube APIs
-</div>
-""", unsafe_allow_html=True)
